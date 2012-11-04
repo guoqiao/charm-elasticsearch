@@ -1,9 +1,10 @@
 options:
   version:
     type: string
-    default: "0.19.4"
+    default: "0.19.10"
     description: |
       This sets the elasticsearch version number that will be used.
+      If you're  going to plug in logstash,  make sure versions match.
   cluster-name:
     type: string
     default: "elasticsearch"
@@ -32,3 +33,29 @@ options:
     type: string
     description: |
       This sets the s3 bucket name for the elasticsearch s3 gateway.
+  checksum:
+    type: string
+    default: "1e32776a453b7947dc525c4b095b30ce"
+    description: |
+      MD5 checksum of elasticsearch download.
+  checksumwrapper:
+    type: string
+    default: "450fcee5225cc4837e8b61eb64bcc2d2"
+    description: |
+      MD5 checksum of elasticsearch service wrapper download.
+  downloadurl:
+    type: string
+    default: "https://github.com/downloads/elasticsearch/elasticsearch"
+    description: |
+      URL to download elasticsearch from.
+  zenmasters:
+    type: string
+    default: "false"
+    description: |
+      comma seperated list of masters.   if you run more than one ES nodes
+      and your platform doesn't support multicast discovery,  set this to at 
+      least the address of the first node.  default 'false' tells it not
+      to do anything.   Once you have a master up you  can use
+      juju set elasticsearch zenmasters="10.0.3.180" ...   but try and get
+      multicast or ec2 discovery working first ;). 
+

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -eux # -x for verbose logging to juju debug-log
+HOME=`dirname $0`
+. $HOME/common.sh
+
+if [[ ${ZENMASTERS} != "false" ]]; then
+  juju-log "Updating- discovery.zen.ping.unicast.hosts: \"${ZENMASTERS}\""
+  echo "discovery.zen.ping.unicast.hosts: \"${ZENMASTERS}\"" >> /opt/elasticsearch/config/elasticsearch.yml
+  /opt/elasticsearch/bin/service/elasticsearch condrestart
+fi  
