@@ -31,3 +31,5 @@ description: |
 provides:
   rest:
     interface: elasticsearch
+  cluster:
+    interface: elasticsearch

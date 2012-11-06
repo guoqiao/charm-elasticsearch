@@ -44,3 +44,5 @@ which should give you a similar json response.
 the download files for the current version are included in the package,  but they can be downloaded by removing the files, or changing the config to point to a different version.
 
 there seems to be something a bit buggy with the service wrapper on the first unit ...  if it's not start/stopping properly,  get in there and hard kill any java processes then start it again using the service wrapper.   seems to work fine after doing that.
+
+will relation join with logstash and kibana charms via the cluster and rest relations.

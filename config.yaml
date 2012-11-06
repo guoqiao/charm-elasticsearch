@@ -10,6 +10,7 @@ options:
     default: "elasticsearch"
     description: |
       This sets the elasticsearch cluster name, which is used to discover and auto-join other nodes.
+      don not change this if you want elasticsearch and kibana to work.
   bootstrap-class:
     type: string
     default: "org.elasticsearch.bootstrap.ElasticSearchF"

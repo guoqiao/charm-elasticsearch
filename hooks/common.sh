@@ -10,5 +10,6 @@ SECRET_KEY=$(config-get secret-key)
 REGION=$(config-get region)
 CHECKSUM=$(config-get checksum)
 DOWNLOADURL=$(config-get downloadurl)
-CHECKSUMWRAPPER=$(config-get checksum-wrapper)
+CHECKSUMWRAPPER=$(config-get checksumwrapper)
 ZENMASTERS=$(config-get zenmasters)
+HOST=`unit-get private-address`

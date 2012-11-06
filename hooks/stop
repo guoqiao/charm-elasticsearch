@@ -5,7 +5,11 @@
 # that it is live... you could remove it and sleep for a bit to allow the load
 # balancer to stop sending traffic.
 # rm /srv/webroot/server-live.txt && sleep 30
+set -eux # -x for verbose logging to juju debug-log
+HOME=`dirname $0`
+. $HOME/common.sh
 
-close-port 9200
-close-port 9300
+
+close-port 9200/tcp
+close-port 9300/tcp
 /opt/elasticsearch/bin/service/elasticsearch stop

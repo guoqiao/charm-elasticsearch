@@ -9,7 +9,7 @@ juju-log "Check if we've installed elasticsearch before"
 
 if [ ! -f "/opt/elasticsearch-$VERSION/bin/elasticsearch" ]; then
 	juju-log "Installing OpenJDK"
-	apt-get install -y default-jre-headless wget
+	apt-get install -y default-jre-headless wget curl
 
   juju-log "Downloading elasticsearch"
 
@@ -56,7 +56,7 @@ if [ ! -f "/opt/elasticsearch-$VERSION/bin/elasticsearch" ]; then
   cd /opt/elasticsearch
 
   juju-log "Setup elasticsearch as a service"
-  bin/service/elasticsearch install
+  /opt/elasticsearch/bin/service/elasticsearch install
 
   juju-log "Update elasticsearch config"
   sed -i "s/<Path to ElasticSearch Home>/\/opt\/elasticsearch/g" bin/service/elasticsearch.conf
@@ -82,4 +82,9 @@ discovery:
   type: ec2
 EOF
   fi
+
+# install elasticsearch head
+/opt/elasticsearch/bin/plugin -install mobz/elasticsearch-head
+
+
 fi
