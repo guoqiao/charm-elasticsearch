@@ -13,3 +13,5 @@ DOWNLOADURL=$(config-get downloadurl)
 CHECKSUMWRAPPER=$(config-get checksumwrapper)
 ZENMASTERS=$(config-get zenmasters)
 HOST=`unit-get private-address`
+HEAP_SIZE=1024  # may need to change this if using small ec2 instance
+#HEAP_SIZE=`cat /proc/meminfo | grep MemTotal | awk '{print int($2*.5/1000)}'`

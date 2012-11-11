@@ -6,9 +6,7 @@ set -eux
 
 juju-log $JUJU_REMOTE_UNIT modified its settings
 
-juju-log "##############################################################"
-juju-log "#        Relationship Advice -     $JUJU_REMOTE_UNIT         #"
-juju-log "##############################################################"
+juju-log "Relationship Advice - $JUJU_REMOTE_UNIT"
 juju-log Relation settings:
 relation-get
 juju-log Relation members:

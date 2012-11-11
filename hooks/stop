@@ -10,6 +10,6 @@ HOME=`dirname $0`
 . $HOME/common.sh
 
 
-close-port 9200/tcp
-close-port 9300/tcp
+#close-port 9200/tcp
+#close-port 9300/tcp
 /opt/elasticsearch/bin/service/elasticsearch stop

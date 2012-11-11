@@ -7,8 +7,8 @@ HOME=`dirname $0`
 . $HOME/common.sh
 
 
-open-port 9200/tcp
-open-port 9300/tcp
+#open-port 9200/tcp
+#open-port 9300/tcp
 /opt/elasticsearch/bin/service/elasticsearch start
 
 # load up logstash template. 

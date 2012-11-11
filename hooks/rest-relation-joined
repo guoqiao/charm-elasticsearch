@@ -10,5 +10,5 @@ HOME=`dirname $0`
 juju-log $JUJU_REMOTE_UNIT joined
 
 # Set hostname for rest client
-relation-set cluster-name=${CLUSTER_NAME}
+relation-set cluster_name=${CLUSTER_NAME}
 relation-set host=${HOST}

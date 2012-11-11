@@ -46,3 +46,5 @@ the download files for the current version are included in the package,  but the
 there seems to be something a bit buggy with the service wrapper on the first unit ...  if it's not start/stopping properly,  get in there and hard kill any java processes then start it again using the service wrapper.   seems to work fine after doing that.
 
 will relation join with logstash and kibana charms via the cluster and rest relations.
+
+use http://ip.addr:9200/_plugin/head to see a good status view of the cluster.
