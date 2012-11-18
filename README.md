@@ -48,3 +48,6 @@ there seems to be something a bit buggy with the service wrapper on the first un
 will relation join with logstash and kibana charms via the cluster and rest relations.
 
 use http://ip.addr:9200/_plugin/head to see a good status view of the cluster.
+
+
+see logstash-indexer charm's README.md file for usage examples.
