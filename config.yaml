@@ -1,7 +1,7 @@
 options:
   version:
     type: string
-    default: "0.19.10"
+    default: "0.90.3"
     description: |
       This sets the elasticsearch version number that will be used.
       If you're  going to plug in logstash,  make sure versions match.
@@ -36,9 +36,9 @@ options:
       This sets the s3 bucket name for the elasticsearch s3 gateway.
   checksum:
     type: string
-    default: "1e32776a453b7947dc525c4b095b30ce"
+    default: "24843192bee3afd19f5a958800e896153dbc3569"
     description: |
-      MD5 checksum of elasticsearch download.
+      SHA1 checksum of elasticsearch download.
   checksumwrapper:
     type: string
     default: "450fcee5225cc4837e8b61eb64bcc2d2"
@@ -46,7 +46,7 @@ options:
       MD5 checksum of elasticsearch service wrapper download.
   downloadurl:
     type: string
-    default: "https://github.com/downloads/elasticsearch/elasticsearch"
+    default: "https://download.elasticsearch.org/elasticsearch/elasticsearch"
     description: |
       URL to download elasticsearch from.
   zenmasters:

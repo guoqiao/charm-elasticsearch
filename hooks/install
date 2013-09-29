@@ -22,7 +22,7 @@ if [ ! -f "/opt/elasticsearch-$VERSION/bin/elasticsearch" ]; then
     # Download and checksum
     juju-log "elasticsearch wrapper binary not found local ... download"
     wget -q -O /tmp/elasticsearch-$VERSION.tar.gz "${DOWNLOADURL}/elasticsearch-$VERSION.tar.gz"
-    if [[ $(md5sum "/tmp/elasticsearch-$VERSION.tar.gz" | cut -d " " -f 1) != ${CHECKSUM} ]]; then
+    if [[ $(sha1sum "/tmp/elasticsearch-$VERSION.tar.gz" | cut -d " " -f 1) != ${CHECKSUM} ]]; then
       juju-log --log-level CRITICAL "Checksum of elasticsearch-$VERSION.tar.gz failed"
       exit 1
     fi
