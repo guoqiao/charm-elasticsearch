@@ -19,10 +19,12 @@ options:
       less than or equal to 0.18.7
   access-key:
     type: string
+    default: ""
     description: |
       Access key for EC2.
   secret-key:
     type: string
+    default: ""
     description: |
       Secret key for EC2.
   region:
@@ -32,6 +34,7 @@ options:
       This sets the region that will be used for discovery on ec2
   bucket-name:
     type: string
+    default: ""
     description: |
       This sets the s3 bucket name for the elasticsearch s3 gateway.
   checksum:
