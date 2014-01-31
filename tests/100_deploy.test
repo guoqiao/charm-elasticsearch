@@ -1,62 +1,43 @@
 #!/usr/bin/env python3
 
-
 # Author: Charles Butler <charles.butler@canonical.com>
 # Deploys elasticsearch and logstash-indexer
 # Validates relationship presence, issues HTTPS request against
 # elasticsearch cluster to validate scale, cluster name
-
-
-
-
-
 import amulet
 import requests
-import json
 
-##########################################
+###############################################################################
 # Config Options
-##########################################
+###############################################################################
 scale = 1
 seconds = 900
 
-
-
-###################################################################################
+###############################################################################
 #Deployment Setup
-###################################################################################
-
-
+###############################################################################
 
 d = amulet.Deployment()
 
 d.add('elasticsearch', units=scale)
 d.add('logstash-indexer')
-d.configure('elasticsearch', { 'cluster-name' : 'amulet-test' })
+d.configure('elasticsearch', {'cluster-name': 'amulet-test'})
 d.relate('elasticsearch:cluster', 'logstash-indexer:rest')
 d.expose('elasticsearch')
 
-print(json.dumps(d.schema(), indent=2))  
-
 #perform deployment
-try: 
+try:
     d.setup(timeout=seconds)
 except amulet.helpers.TimeoutError:
-    message = 'The environment did not setup in %d seconds.', seconds 
+    message = 'The environment did not setup in %d seconds.' % seconds
     amulet.raise_status(amulet.SKIP, msg=message)
 except:
     raise
 
-
-
-
-
-###################################################################################
+###############################################################################
 # Service Health Checks
-###################################################################################
-
-
-# Elastic Search exposes a status RPC call, fetch the JSON and match against 
+###############################################################################
+# Elastic Search exposes a status RPC call, fetch the JSON and match against
 # the following example template for nodes, cluster_name and status:
 #{
 #  "cluster_name" : "elasticsearch",
@@ -72,39 +53,36 @@ except:
 #}
 
 
-def healthcheck():
-    es_unit  = d.sentry.unit['elasticsearch/0']
-    es_address = es_unit.info['public-address']
-    
-    health = requests.get("http://{}:9200/_cluster/health".format(es_address), verify=False)
+def es_healthcheck(address=""):
+
+    health = requests.get(
+        "http://{}:9200/_cluster/health".format(address), verify=False)
     # Must return 200OK to pass
-    health.raise_for_status
-    json_output = json.loads(health.content.decode())
-
-
+    health.raise_for_status()
+    json_output = health.json()
 
     # Validate cluster name from config was set
     if json_output['cluster_name'] != 'amulet-test':
-        amulet.raise_status(amulet.SKIP, msg="Configured cluster-name failed check")
-    
+        amulet.raise_status(
+            amulet.FAIL, msg="Configured cluster-name failed check")
+
     # validate unit scale
-    if json_output['number_of_nodes'] != scale :
-        amulet.raise_status(amulet.SKIP, msg="Scale check failed, expected: {}, got: {}".format(scale, json_output['number_of_nodes']))
+    if json_output['number_of_nodes'] != scale:
+        amulet.raise_status(
+            amulet.FAIL,
+            msg="Scale check failed, expected: {}, got: {}".format(
+                scale, json_output['number_of_nodes']))
 
 
-
-
-###################################################################################
-# Relationship Checks 
-###################################################################################
-
+###############################################################################
+# Relationship Checks
+###############################################################################
 def relationships():
-    #Raises an error if the relationship is not set 
-    d.sentry.unit['elasticsearch/0'].relation('cluster', 'logstash-indexer:rest')
+    #Raises an error if the relationship is not set
+    d.sentry.unit['elasticsearch/0'].relation(
+        'cluster', 'logstash-indexer:rest')
 
 
 # Execute healthchecks before relationship check
-healthcheck()
+es_healthcheck(d.sentry.unit['elasticsearch/0'].info['public-address'])
 relationships()
-
-
