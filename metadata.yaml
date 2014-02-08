@@ -1,6 +1,8 @@
 name: elasticsearch
 summary: Open Source, Distributed, RESTful, Search Engine built on Apache Lucene
 maintainer: Paul Czarkowski <paul@paulcz.net>
+categories:
+    - applications
 description: |
   ElasticSearch is a distributed RESTful search engine built for the cloud. Features include:
 
