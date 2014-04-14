@@ -2,18 +2,23 @@
 # Here put anything that is needed to start the service.
 # Note that currently this is run directly after install
 # i.e. 'service apache2 start'
+
 set -eux # -x for verbose logging to juju debug-log
+
 HOME=`dirname $0`
 . $HOME/common.sh
 
-
 open-port 9200/tcp
 open-port 9300/tcp
-/opt/elasticsearch/bin/service/elasticsearch start
+
+juju-log "run elasticsearch"
+initctl start elasticsearch
+
+juju-log "started"
 
 # load up logstash template. 
 # https://github.com/logstash/logstash/wiki/Elasticsearch-Storage-Optimization
 # really we should do this as part of the relationship join.
-juju-log "sleep 10seconds then install logstash template"
+juju-log "sleep 10 seconds then install logstash template"
 sleep 10s
 curl -XPUT 'http://localhost:9200/_template/template_logstash/' -d @${HOME}/../files/charm/logstash-template.json

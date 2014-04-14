@@ -9,7 +9,10 @@ set -eux # -x for verbose logging to juju debug-log
 HOME=`dirname $0`
 . $HOME/common.sh
 
-
 #close-port 9200/tcp
 #close-port 9300/tcp
-/opt/elasticsearch/bin/service/elasticsearch stop
+
+if ( initctl status elasticsearch | grep start ); then
+	initctl stop elasticsearch
+fi
+

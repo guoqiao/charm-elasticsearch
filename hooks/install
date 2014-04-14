@@ -5,10 +5,14 @@ set -eux # -x for verbose logging to juju debug-log
 HOME=`dirname $0`
 . $HOME/common.sh
 
+juju-log "create elasticsearch user"
+[ -z "$(id ${USER})"] && useradd ${USER}
+
 juju-log "Check if we've installed elasticsearch before"
 
 if [ ! -f "/opt/elasticsearch-$VERSION/bin/elasticsearch" ]; then
 	juju-log "Installing OpenJDK"
+	apt-get update
 	apt-get install -y default-jre-headless wget curl
 
   juju-log "Downloading elasticsearch"
@@ -20,7 +24,7 @@ if [ ! -f "/opt/elasticsearch-$VERSION/bin/elasticsearch" ]; then
     install -o root -g root -m 0644 $HOME/../files/charm/elasticsearch-$VERSION.tar.gz /tmp/elasticsearch-$VERSION.tar.gz
   else
     # Download and checksum
-    juju-log "elasticsearch wrapper binary not found local ... download"
+    juju-log "elasticsearch binary not found local ... download"
     wget -q -O /tmp/elasticsearch-$VERSION.tar.gz "${DOWNLOADURL}/elasticsearch-$VERSION.tar.gz"
     if [[ $(sha1sum "/tmp/elasticsearch-$VERSION.tar.gz" | cut -d " " -f 1) != ${CHECKSUM} ]]; then
       juju-log --log-level CRITICAL "Checksum of elasticsearch-$VERSION.tar.gz failed"
@@ -28,41 +32,30 @@ if [ ! -f "/opt/elasticsearch-$VERSION/bin/elasticsearch" ]; then
     fi
   fi
 
-	juju-log "Installing service wrapper"
-  if [ -f $HOME/../files/charm/es-wrapper.tar.gz ]
-  then
-    juju-log "elasticsearch wrapper binary found local"
-    install -o root -g root -m 0644 $HOME/../files/charm/es-wrapper.tar.gz /tmp/es-wrapper.tar.gz
-   else
-    # Download and checksum
-    juju-log "elasticsearch wrapper binary not found local ... download"
-    wget  -q -O /tmp/es-wrapper.tar.gz "http://github.com/elasticsearch/elasticsearch-servicewrapper/tarball/master"
-    if [[ $(md5sum "/tmp/es-wrapper.tar.gz" | cut -d " " -f 1) != ${CHECKSUMWRAPPER} ]]; then
-      juju-log --log-level CRITICAL "Checksum of es-wrapper.tar.gz failed"
-      exit 1
-    fi
-  fi
   juju-log "untar elasticsearch"
   cd /opt
   tar xzvf /tmp/elasticsearch-$VERSION.tar.gz
   ln -s elasticsearch-$VERSION elasticsearch
   rm /tmp/elasticsearch-$VERSION.tar.gz
-  juju-log "untar elasticsearch service wrapper"
-  tar xzvf /tmp/es-wrapper.tar.gz
-  rm /tmp/es-wrapper.tar.gz
-  mv *servicewrapper*/service elasticsearch/bin/
-  rm -Rf *servicewrapper*
 
   cd /opt/elasticsearch
 
   juju-log "Setup elasticsearch as a service"
-  /opt/elasticsearch/bin/service/elasticsearch install
+  install -o root -g root -m 0644 ${HOME}/../files/charm/services/elasticsearch.conf /etc/init/elasticsearch.conf
+
+  # Service wrapper stuff
+  #sed -i "s/<Path to ElasticSearch Home>/\/opt\/elasticsearch/" bin/service/elasticsearch.conf
+  #sed -i "s/set\.default\.ES_HEAP_SIZE=.*/set.default.ES_HEAP_SIZE=${HEAP_SIZE}/" bin/service/elasticsearch.conf
+  #sed -i "s/wrapper.app.parameter.1.*/wrapper.app.parameter.1=$BOOTSTRAP_CLASS/" bin/service/elasticsearch.conf
 
   juju-log "Update elasticsearch config"
-  sed -i "s/<Path to ElasticSearch Home>/\/opt\/elasticsearch/" bin/service/elasticsearch.conf
-  sed -i "s/set\.default\.ES_HEAP_SIZE=.*/set.default.ES_HEAP_SIZE=${HEAP_SIZE}/" bin/service/elasticsearch.conf
-  sed -i "s/wrapper.app.parameter.1.*/wrapper.app.parameter.1=$BOOTSTRAP_CLASS/" bin/service/elasticsearch.conf
   sed -i "s/# cluster.name:.*/cluster.name: $CLUSTER_NAME/" config/elasticsearch.yml
+
+  juju-log "Make sure ${USER} user can write"
+  mkdir -p /opt/elasticsearch/logs/
+  chown -R ${USER}. /opt/elasticsearch/logs/
+  mkdir -p /opt/elasticsearch/data/
+  chown -R ${USER}. /opt/elasticsearch/data/
 
   # If Amazon install some magic stuff to allow auto-discovery of other ES nodes.
   if [ ! -z "$ACCESS_KEY" ] && [ ! -z "$SECRET_KEY" ]; then
