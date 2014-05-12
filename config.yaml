@@ -1,7 +1,7 @@
 options:
   version:
     type: string
-    default: "0.90.3"
+    default: "1.1.0"
     description: |
       This sets the elasticsearch version number that will be used.
       If you're  going to plug in logstash,  make sure versions match.
@@ -39,7 +39,7 @@ options:
       This sets the s3 bucket name for the elasticsearch s3 gateway.
   checksum:
     type: string
-    default: "24843192bee3afd19f5a958800e896153dbc3569"
+    default: "6518b6f90df21e034b20e9a222b780651a6cdcdb"
     description: |
       SHA1 checksum of elasticsearch download.
   checksumwrapper:
