@@ -1,65 +1,23 @@
 options:
-  version:
+  apt-repository:
     type: string
-    default: "1.1.0"
+    default: "deb http://packages.elasticsearch.org/elasticsearch/1.0/debian stable main"
     description: |
-      This sets the elasticsearch version number that will be used.
-      If you're  going to plug in logstash,  make sure versions match.
+      A deb-line for the apt archive which contains the elasticsearch package.
+      This is necessary until elasticsearch gets into the debian/ubuntu archives.
+  apt-key-url:
+    type: string
+    default: "http://packages.elasticsearch.org/GPG-KEY-elasticsearch"
+    description: |
+      The url for the key for the apt-repository.
   cluster-name:
     type: string
     default: "elasticsearch"
     description: |
-      This sets the elasticsearch cluster name, which is used to discover and auto-join other nodes.
-      don not change this if you want elasticsearch and kibana to work.
-  bootstrap-class:
-    type: string
-    default: "org.elasticsearch.bootstrap.ElasticSearchF"
+      This sets the elasticsearch cluster name.
+  install-ansible-from-ppa:
+    type: boolean
+    default: true
     description: |
-      Class used by elasticsearch service wrapper, should be org.elasticsearch.bootstrap.ElasticSearch for versions
-      less than or equal to 0.18.7
-  access-key:
-    type: string
-    default: ""
-    description: |
-      Access key for EC2.
-  secret-key:
-    type: string
-    default: ""
-    description: |
-      Secret key for EC2.
-  region:
-    type: string
-    default: "us-east"
-    description: |
-      This sets the region that will be used for discovery on ec2
-  bucket-name:
-    type: string
-    default: ""
-    description: |
-      This sets the s3 bucket name for the elasticsearch s3 gateway.
-  checksum:
-    type: string
-    default: "6518b6f90df21e034b20e9a222b780651a6cdcdb"
-    description: |
-      SHA1 checksum of elasticsearch download.
-  checksumwrapper:
-    type: string
-    default: "450fcee5225cc4837e8b61eb64bcc2d2"
-    description: |
-      MD5 checksum of elasticsearch service wrapper download.
-  downloadurl:
-    type: string
-    default: "https://download.elasticsearch.org/elasticsearch/elasticsearch"
-    description: |
-      URL to download elasticsearch from.
-  zenmasters:
-    type: string
-    default: "false"
-    description: |
-      comma seperated list of masters.   if you run more than one ES nodes
-      and your platform doesn't support multicast discovery,  set this to at 
-      least the address of the first node.  default 'false' tells it not
-      to do anything.   Once you have a master up you  can use
-      juju set elasticsearch zenmasters="10.0.3.180" ...   but try and get
-      multicast or ec2 discovery working first ;). 
-
+      By default ansible will be installed from the Ansible ppa. You can
+      set this to false for your deployments if you have ansible available

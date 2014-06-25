@@ -1,0 +1,45 @@
+- hosts: localhost
+  roles:
+    - role: nrpe
+      check_name: check_http
+      check_params: -H localhost -u /_cluster/health -p 9200 -w 2 -c 3 -s green
+      service_description: "Verify the cluster health is green."
+
+  handlers:
+
+    - name: Restart ElasticSearch
+      service: name=elasticsearch state=restarted
+
+  tasks:
+
+    - include: tasks/install-elasticsearch.yml
+    - include: tasks/peer-relations.yml
+
+    - name: Update configuration
+      tags:
+        - config-changed
+      template: src={{ charm_dir }}/templates/elasticsearch.yml
+                dest=/etc/elasticsearch/elasticsearch.yml
+                mode=0644
+                backup=yes
+      notify:
+        - Restart ElasticSearch
+
+    - name: Start ElasticSearch
+      service: name=elasticsearch state=started
+      tags:
+        - start
+
+    - name: Stop ElasticSearch
+      service: name=elasticsearch state=stopped
+      tags:
+        - stop
+
+    - name: Relate the cluster name and host.
+      tags:
+        - client-relation-joined
+      command: >
+        relation-set
+        cluster-name={{ cluster_name }}
+        host={{ ansible_default_ipv4.address }}
+        port=9200

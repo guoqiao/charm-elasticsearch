@@ -1,0 +1,33 @@
+#!/usr/bin/python3
+import json
+import requests
+import sys
+
+import amulet
+
+import helpers
+
+
+d = amulet.Deployment()
+
+d.add('elasticsearch')
+
+helpers.setup_deployment(d)
+
+health = helpers.get_cluster_health(d, wait_for_nodes=2)
+
+if health['status'] not in ('green', 'yellow'):
+    msg = "Elastic Search status is %s" % health['status']
+    amulet.raise_status(amulet.FAIL, msg=msg)
+
+# Create a test index.
+elastic_0_addr = helpers.get_unit_address(d, unit_number=0)
+response = requests.put(
+    elastic_0_addr + "/test/tweet/1",
+    json.dumps({'user': 'me', 'message': 'testing'}))
+helpers.check_response(response, expected_code=201)
+
+health = helpers.get_index_health(d, 'test')
+if health['status'] not in ('green', 'yellow'):
+    msg = "Elastic Search test index status is %s." % health['status']
+    amulet.raise_status(amulet.FAIL, msg=msg)

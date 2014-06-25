@@ -1,0 +1,44 @@
+- name: Add apt key.
+  tags:
+    - install
+    - upgrade-charm
+    - config-changed
+  apt_key: url={{ apt_key_url }} state=present
+  when: apt_key_url != ""
+
+- name: Add apt archive.
+  tags:
+    - install
+    - upgrade-charm
+    - config-changed
+  apt_repository:
+    repo: "{{ apt_repository }}"
+    state: present
+  when: apt_repository != ""
+
+- name: Install dependent packages.
+  apt: pkg=openjdk-7-jre-headless state=latest update_cache=yes
+  tags:
+    - install
+    - upgrade-charm
+
+- name: Check for local elasticsearch.deb in payload.
+  stat: path=files/elasticsearch.deb
+  register: stat_elasticsearch_deb
+  tags:
+    - install
+    - upgrade-charm
+
+- name: Install elasticsearch from repository
+  apt: pkg=elasticsearch state=latest update_cache=yes
+  tags:
+    - install
+    - upgrade-charm
+  when: stat_elasticsearch_deb.stat.exists == false and apt_repository != ""
+
+- name: Install ElasticSearch from payload
+  command: dpkg -i {{ charm_dir }}/files/elasticsearch.deb
+  tags:
+    - install
+    - upgrade-charm
+  when: stat_elasticsearch_deb.stat.exists == true

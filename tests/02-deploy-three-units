@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import json
+import requests
+import sys
+
+import amulet
+
+import helpers
+
+d = amulet.Deployment()
+
+d.add('elasticsearch', units=3)
+
+helpers.setup_deployment(d)
+
+health = helpers.get_cluster_health(d, wait_for_nodes=3)
+
+if health['number_of_nodes'] != 3:
+    amulet.raise_status(amulet.FAIL, msg=msg)
+    msg = ("Expected at least 3 nodes in cluster with 3 units deployed, "
+           "got {}".format(health['number_of_nodes']))

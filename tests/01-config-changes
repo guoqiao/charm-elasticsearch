@@ -1,0 +1,22 @@
+#!/usr/bin/python3
+import sys
+
+import amulet
+import helpers
+
+d = amulet.Deployment()
+
+d.add('elasticsearch')
+config = {'cluster-name': 'unique-name'}
+d.configure('elasticsearch', config)
+
+helpers.setup_deployment(d)
+
+health = helpers.get_cluster_health(d)
+
+cluster_name = health['cluster_name']
+
+if cluster_name != 'unique-name':
+    msg = ("Expected cluster name to be 'unique-name' "
+           "but was '{}'.".format(cluster_name))
+    amulet.raise_status(amulet.FAIL, msg=msg)
