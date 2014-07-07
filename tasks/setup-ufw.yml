@@ -1,0 +1,30 @@
+  # Actual error:
+  # ip6tables v1.4.21: can't initialize ip6tables table `filter':
+  # Table does not exist (do you need to insmod?)
+  # Perhaps ip6tables or your kernel needs to be upgraded.
+- name: Update ufw config to avoid error
+  tags:
+    - install
+    - upgrade-charm
+  lineinfile: dest=/etc/default/ufw
+              regexp="^IPV6=yes$"
+              line="IPV6=no"
+
+- name: Turn on fire wall with logging.
+  tags:
+    - install
+    - upgrade-charm
+  ufw: state=enabled policy=allow logging=on
+
+- name: Deny all incoming requests on 9200
+  tags:
+    - install
+    - upgrade-charm
+  ufw: rule=deny port=9200
+
+- name: Allow localhost queries of port 9200
+  tags:
+    - install
+    - upgrade-charm
+  ufw: rule=allow port=9200 proto=tcp src=127.0.0.1
+
