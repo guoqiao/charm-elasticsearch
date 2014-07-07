@@ -19,26 +19,12 @@ class InstallHookTestCase(unittest.TestCase):
         patcher = mock.patch('hooks.charmhelpers')
         self.mock_charmhelpers = patcher.start()
         self.addCleanup(patcher.stop)
-        self.mock_charmhelpers.core.hookenv.config.return_value = {
-            'install-ansible-from-ppa': True,
-        }
 
         patcher = mock.patch('charmhelpers.contrib.ansible.apply_playbook')
         self.mock_apply_playbook = patcher.start()
         self.addCleanup(patcher.stop)
 
     def test_installs_ansible_support(self):
-        hooks.execute(['install'])
-
-        ansible = self.mock_charmhelpers.contrib.ansible
-        ansible.install_ansible_support.assert_called_once_with(
-            from_ppa=True)
-
-    def test_no_ppa_for_ansible_support(self):
-        self.mock_charmhelpers.core.hookenv.config.return_value = {
-            'install-ansible-from-ppa': False,
-        }
-
         hooks.execute(['install'])
 
         ansible = self.mock_charmhelpers.contrib.ansible

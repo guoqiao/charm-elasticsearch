@@ -27,9 +27,8 @@ def install():
     """Install ansible before running the tasks tagged with 'install'."""
     # Allow charm users to run preinstall setup.
     charmhelpers.payload.execd.execd_preinstall()
-    config = charmhelpers.core.hookenv.config()
     charmhelpers.contrib.ansible.install_ansible_support(
-        from_ppa=config['install-ansible-from-ppa'])
+        from_ppa=False)
 
 
 if __name__ == "__main__":

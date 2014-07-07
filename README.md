@@ -1,24 +1,38 @@
-# Getting started with ElasticSearch
+# Overview
 
-To deploy ElasticSearch locally:
+Elasticsearch is a flexible and powerful open source, distributed, real-time
+search and analytics engine. Architected from the ground up for use in
+distributed environments where reliability and scalability are must haves,
+Elasticsearch gives you the ability to move easily beyond simple full-text
+search. Through its robust set of APIs and query DSLs, plus clients for the
+most popular programming languages, Elasticsearch delivers on the near
+limitless promises of search technology.
 
-    juju bootstrap
-    juju deploy --repository=../.. local:elasticsearch
+Except from [elasticsearch.org](http://www.elasticsearch.org/overview/ "Elasticsearch Overview")
 
-You can add more units and they will discover each other and
-join the cluster.
+
+# Usage
+
+Deploy two units from the charmstore with:
+
+    juju deploy --num-units 2 cs:trusty/elasticsearch
+
+And when they have started you can inspect the cluster health:
+
+    juju ssh elasticsearch/0 "curl http://localhost:9200/_cat/health?v"
+    epoch      timestamp cluster       status node.total node.data shards ...
+    1404728290 10:18:10  elasticsearch green           2         2      0
+
+See the separate HACKING.md for information about deploying this charm
+from a local repository.
 
 
 ## Relating to the Elasticsearch cluster
 
-This charm currently provides the website http interface to the
-consuming service, ie. the private address of an elasticsearch unit. The
-consuming service can use this on the website-relation-joined
-relation to query the cluster for the list of nodes (many client
-elasticsearch apis will do this for you [1]).
-
-If it's needed, we can add an elasticsearch cluster interface that
-returns the lists of hosts in the cluster.
+This charm currently provides the elasticsearch client interface to the
+consuming service (cluster-name, host and port). Normally the other service
+will only need this data from one elasticsearch unit to start as most client
+libraries then query for the list of backends [1].
 
 [1] http://elasticsearch-py.readthedocs.org/en/latest/api.html#elasticsearch
 
@@ -26,19 +40,12 @@ returns the lists of hosts in the cluster.
 ## Discovery
 
 This charm uses unicast discovery which utilises the orchestration
-of juju so that the discovery method is the same whether you deploy
-on EC2, lxc or any other cloud provider.
+of juju so that whether you deploy on ec2, lxc or any other cloud
+provider, the functionality for discovering other nodes remains the same.
 
 When a new unit first joins the cluster, it will update its config
 with the other units in the cluster (via the peer-relation-joined
 hook), after which ElasticSearch handles the rest.
-
-
-## Testing the ElasticSearch charm
-
-Run the unit-tests with `make test`.
-
-Run the functional tests with `juju test`.
 
 
 ## Downloading ElasticSearch

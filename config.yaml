@@ -1,7 +1,7 @@
 options:
   apt-repository:
     type: string
-    default: "deb http://packages.elasticsearch.org/elasticsearch/1.0/debian stable main"
+    default: "deb http://packages.elasticsearch.org/elasticsearch/1.2/debian stable main"
     description: |
       A deb-line for the apt archive which contains the elasticsearch package.
       This is necessary until elasticsearch gets into the debian/ubuntu archives.
@@ -15,9 +15,3 @@ options:
     default: "elasticsearch"
     description: |
       This sets the elasticsearch cluster name.
-  install-ansible-from-ppa:
-    type: boolean
-    default: true
-    description: |
-      By default ansible will be installed from the Ansible ppa. You can
-      set this to false for your deployments if you have ansible available
