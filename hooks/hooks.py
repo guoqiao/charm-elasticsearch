@@ -18,8 +18,8 @@ hooks = charmhelpers.contrib.ansible.AnsibleHooks(
         'start',
         'stop',
         'upgrade-charm',
-        'client-relation-changed',
         'client-relation-joined',
+        'client-relation-departed',
     ])
 
 

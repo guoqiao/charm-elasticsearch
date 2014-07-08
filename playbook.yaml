@@ -16,7 +16,6 @@
     - include: tasks/setup-ufw.yml
     - include: tasks/peer-relations.yml
 
-
     - name: Update configuration
       tags:
         - config-changed
@@ -46,8 +45,12 @@
         host={{ ansible_default_ipv4.address }}
         port=9200
 
-    - name: Firewall the admin port.
+    - name: Open the firewall for the client
       tags:
         - client-relation-joined
-      ufw: rule=allow src={{ current_relation['private-ip-address'] }} name=elasticsearch-admin port=9200 proto=tcp
+      ufw: insert=0 rule=allow src={{ current_relation['private-address'] }} port=9200 proto=tcp
 
+    - name: Close the firewall for the client
+      tags:
+        - client-relation-departed
+      ufw: delete=yes rule=allow src={{ current_relation['private-address'] }} port=9200 proto=tcp
