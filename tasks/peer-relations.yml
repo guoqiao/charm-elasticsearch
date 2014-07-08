@@ -11,47 +11,57 @@
             mode=0644
             backup=yes
 
-# If multiple units are started simultaneously, peer-relation-joined
+- name: Open the firewall for the peer
+  tags:
+    - peer-relation-joined
+  ufw: insert=1 rule=allow src={{ current_relation['private-address'] }} port=9300 proto=tcp
+
+- name: Close the firewall for the peer
+  tags:
+    - peer-relation-departed
+  ufw: insert=1 rule=allow src={{ current_relation['private-address'] }} port=9300 proto=tcp
+
+# If multiple units are started simultaneously, peer-relation-changed
 # may be called before the service is running.
 - name: Wait until the local service is available
   tags:
-    - peer-relation-joined
+    - peer-relation-changed
   wait_for: port=9200
 
 - name: Record current cluster health
   tags:
-    - peer-relation-joined
+    - peer-relation-changed
   uri: url=http://localhost:9200/_cluster/health return_content=yes
   register: cluster_health
 
 - name: Restart if not part of cluster
   tags:
-    - peer-relation-joined
+    - peer-relation-changed
   service: name=elasticsearch state=restarted
   when: cluster_health.json.number_of_nodes == 1
 
 - name: Wait until the local service is available after restart
   tags:
-    - peer-relation-joined
+    - peer-relation-changed
   wait_for: port=9200
   when: cluster_health.json.number_of_nodes == 1
 
 - name: Pause to ensure that after restart unit has time to join.
   tags:
-    - peer-relation-joined
+    - peer-relation-changed
   pause: seconds=30
   when: cluster_health.json.number_of_nodes == 1
 
 - name: Record cluster health after restart
   tags:
-    - peer-relation-joined
+    - peer-relation-changed
   uri: url=http://localhost:9200/_cluster/health return_content=yes
   register: cluster_health_after_restart
   when: cluster_health.json.number_of_nodes == 1
 
 - name: Fail if unit is still not part of cluster
   tags:
-    - peer-relation-joined
-  fail: msg="Unit failed to join cluster during peer-relation-joined"
+    - peer-relation-changed
+  fail: msg="Unit failed to join cluster during peer-relation-changed"
   when: cluster_health.json.number_of_nodes == 1 and cluster_health_after_restart.json.number_of_nodes == 1
 

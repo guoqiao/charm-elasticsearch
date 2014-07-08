@@ -24,3 +24,9 @@
     - install
     - upgrade-charm
   ufw: rule=deny port=9200
+
+- name: Deny all incoming requests on 9300
+  tags:
+    - install
+    - upgrade-charm
+  ufw: rule=deny port=9300
