@@ -1,7 +1,10 @@
-  # Actual error:
-  # ip6tables v1.4.21: can't initialize ip6tables table `filter':
-  # Table does not exist (do you need to insmod?)
-  # Perhaps ip6tables or your kernel needs to be upgraded.
+# XXX 2014-07-08 michael nelson ip6 not supported on image (?)
+# ufw errors unless you switch off ipv6 support. Not sure if it's
+# related to the kernel used on the cloud image, but the actual
+# error is:
+# ip6tables v1.4.21: can't initialize ip6tables table `filter':
+# Table does not exist (do you need to insmod?)
+# Perhaps ip6tables or your kernel needs to be upgraded.
 - name: Update ufw config to avoid error
   tags:
     - install

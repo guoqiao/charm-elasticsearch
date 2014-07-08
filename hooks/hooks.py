@@ -31,8 +31,8 @@ def install():
     charmhelpers.contrib.ansible.install_ansible_support(
         from_ppa=False)
 
-    # We copy the extra ansible modules here because they need to be in place
-    # by the time ansible runs any hook.
+    # We copy the backported ansible modules here because they need to be
+    # in place by the time ansible runs any hook.
     charmhelpers.core.host.rsync(
         'ansible_module_backports',
         '/usr/share/ansible')
