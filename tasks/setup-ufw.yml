@@ -21,10 +21,3 @@
     - install
     - upgrade-charm
   ufw: rule=deny port=9200
-
-- name: Allow localhost queries of port 9200
-  tags:
-    - install
-    - upgrade-charm
-  ufw: rule=allow port=9200 proto=tcp src=127.0.0.1
-
