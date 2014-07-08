@@ -19,7 +19,7 @@
 - name: Close the firewall for the peer
   tags:
     - peer-relation-departed
-  ufw: insert=1 rule=allow src={{ current_relation['private-address'] }} port=9300 proto=tcp
+  ufw: delete=yes rule=allow src={{ current_relation['private-address'] }} port=9300 proto=tcp
 
 # If multiple units are started simultaneously, peer-relation-changed
 # may be called before the service is running.
@@ -65,3 +65,7 @@
   fail: msg="Unit failed to join cluster during peer-relation-changed"
   when: cluster_health.json.number_of_nodes == 1 and cluster_health_after_restart.json.number_of_nodes == 1
 
+- name: Deny all incoming requests on 9300
+  tags:
+    - peer-relation-changed
+  ufw: rule=deny port=9300
