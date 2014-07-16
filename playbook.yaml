@@ -25,6 +25,11 @@
       notify:
         - Restart ElasticSearch
 
+    - name: Open ES Port when exposed
+      command: open-port 9200
+      tags:
+        - start
+
     - name: Start ElasticSearch
       service: name=elasticsearch state=started
       tags:
