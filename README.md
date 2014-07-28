@@ -8,14 +8,28 @@ search. Through its robust set of APIs and query DSLs, plus clients for the
 most popular programming languages, Elasticsearch delivers on the near
 limitless promises of search technology.
 
-Except from [elasticsearch.org](http://www.elasticsearch.org/overview/ "Elasticsearch Overview")
-
+Excerpt from [elasticsearch.org](http://www.elasticsearch.org/overview/ "Elasticsearch Overview")
 
 # Usage
 
-Deploy two units from the charmstore with:
+You can simply deploy one node with:
 
-    juju deploy --num-units 2 cs:trusty/elasticsearch
+    juju deploy elasticsearch
+
+You can also deploy and relate the Kibana dashboard:
+
+    juju deploy kibana
+    juju add-relation kibana elasticsearch
+    juju expose kibana
+
+This will expose the Kibana web UI, which will then act as a front end to
+all subsequent Elasticsearch units.
+
+## Scale Out Usage
+
+Deploy three or more units with:
+
+    juju deploy -n3 elasticsearch
 
 And when they have started you can inspect the cluster health:
 
@@ -26,8 +40,7 @@ And when they have started you can inspect the cluster health:
 See the separate HACKING.md for information about deploying this charm
 from a local repository.
 
-
-## Relating to the Elasticsearch cluster
+### Relating to the Elasticsearch cluster
 
 This charm currently provides the elasticsearch client interface to the
 consuming service (cluster-name, host and port). Normally the other service
@@ -36,8 +49,7 @@ libraries then query for the list of backends [1].
 
 [1] http://elasticsearch-py.readthedocs.org/en/latest/api.html#elasticsearch
 
-
-## Discovery
+### Discovery
 
 This charm uses unicast discovery which utilises the orchestration
 of juju so that whether you deploy on ec2, lxc or any other cloud
@@ -47,6 +59,7 @@ When a new unit first joins the cluster, it will update its config
 with the other units in the cluster (via the peer-relation-joined
 hook), after which ElasticSearch handles the rest.
 
+# Configuration
 
 ## Downloading ElasticSearch
 
@@ -57,3 +70,12 @@ deployment to be dependent on external resources.
 
 Alternatively, you can include a files/elasticsearch.deb in the
 charm payload and it will be installed instead.
+
+# Contact Information
+
+## Elasticsearch
+
+- [Elasticsearch website](http://www.elasticsearch.org/)
+- [Source code](http://github.com/elasticsearch)
+- [Mailing List](https://groups.google.com/forum/?fromgroups#!forum/elasticsearch)
+- [Other community resources](http://www.elasticsearch.org/community/)
