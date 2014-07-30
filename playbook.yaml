@@ -10,10 +10,18 @@
     - name: Restart ElasticSearch
       service: name=elasticsearch state=restarted
 
+  vars:
+    - service_name: "{{ local_unit.split('/')[0] }}"
+
   tasks:
 
     - include: tasks/install-elasticsearch.yml
     - include: tasks/setup-ufw.yml
+      tags:
+        - install
+        - upgrade-charm
+        - client-relation-joined
+        - client-relation-departed
     - include: tasks/peer-relations.yml
 
     - name: Update configuration
@@ -44,13 +52,3 @@
         cluster-name={{ cluster_name }}
         host={{ ansible_default_ipv4.address }}
         port=9200
-
-    - name: Open the firewall for the client
-      tags:
-        - client-relation-joined
-      ufw: insert=1 rule=allow src={{ current_relation['private-address'] }} port=9200 proto=tcp
-
-    - name: Close the firewall for the client
-      tags:
-        - client-relation-departed
-      ufw: delete=yes rule=allow src={{ current_relation['private-address'] }} port=9200 proto=tcp

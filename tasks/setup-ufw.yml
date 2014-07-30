@@ -6,21 +6,28 @@
 # Table does not exist (do you need to insmod?)
 # Perhaps ip6tables or your kernel needs to be upgraded.
 - name: Update ufw config to avoid error
-  tags:
-    - install
-    - upgrade-charm
   lineinfile: dest=/etc/default/ufw
               regexp="^IPV6=yes$"
               line="IPV6=no"
 
+# XXX 2014-07-30 michael nelson: It'd be much nicer if we could
+# just render a config file for ufw, as it would be idempotent.
+# As it is, there isn't a way to do that (afaics), so instead we
+# reset the firewall rules each time based on the current clients.
+- name: Reset firewall
+  ufw: state=reset policy=allow logging=on
+
 - name: Turn on fire wall with logging.
-  tags:
-    - install
-    - upgrade-charm
   ufw: state=enabled policy=allow logging=on
 
-- name: Deny all incoming requests on 9200
-  tags:
-    - install
-    - upgrade-charm
+- name: Find the relation id for the client relationship (only one)
+  command: relation-ids client
+  register: client_relation_id
+
+- name: Open the firewall for all clients
+  ufw: rule=allow src={{ item.value['private-address'] }} port=9200 proto=tcp
+  with_dict: relations["client"]["{{ client_relation_id.stdout_lines[0] }}"]
+  when: not item.key.startswith(service_name)
+
+- name: Deny all other requests on 9200
   ufw: rule=deny port=9200
