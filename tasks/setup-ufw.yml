@@ -20,13 +20,9 @@
 - name: Turn on fire wall with logging.
   ufw: state=enabled policy=allow logging=on
 
-- name: Find the relation id for the client relationship (only one)
-  command: relation-ids client
-  register: client_relation_id
-
 - name: Open the firewall for all clients
   ufw: rule=allow src={{ item.value['private-address'] }} port=9200 proto=tcp
-  with_dict: relations["client"]["{{ client_relation_id.stdout_lines[0] }}"]
+  with_dict: relations["client"]["{{ client_relation_id }}"] | default({})
   when: not item.key.startswith(service_name)
 
 - name: Deny all other requests on 9200

@@ -12,6 +12,7 @@
 
   vars:
     - service_name: "{{ local_unit.split('/')[0] }}"
+    - client_relation_id: "{{ relations['client'].keys()[0] | default('') }}"
 
   tasks:
 
