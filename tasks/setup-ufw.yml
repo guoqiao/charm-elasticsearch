@@ -27,3 +27,14 @@
 
 - name: Deny all other requests on 9200
   ufw: rule=deny port=9200
+
+- name: Open the firewall for all peers
+  ufw: rule=allow src={{ item.value['private-address'] }} port=9300 proto=tcp
+  with_dict: relations["peer"]["{{ peer_relation_id }}"] | default({})
+  when: not item.key == local_unit
+
+# Only deny incoming on 9300 once the unit is part of a cluster.
+- name: Deny all incoming requests on 9300 once unit is part of cluster
+  ufw: rule=deny port=9300
+  when: not peer_relation_id == ""
+

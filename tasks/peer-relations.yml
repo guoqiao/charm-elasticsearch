@@ -11,16 +11,6 @@
             mode=0644
             backup=yes
 
-- name: Open the firewall for the peer
-  tags:
-    - peer-relation-joined
-  ufw: insert=1 rule=allow src={{ current_relation['private-address'] }} port=9300 proto=tcp
-
-- name: Close the firewall for the peer
-  tags:
-    - peer-relation-departed
-  ufw: delete=yes rule=allow src={{ current_relation['private-address'] }} port=9300 proto=tcp
-
 # If multiple units are started simultaneously, peer-relation-joined
 # may be called before the service is running.
 - name: Wait until the local service is available
@@ -64,8 +54,3 @@
     - peer-relation-joined
   fail: msg="Unit failed to join cluster during peer-relation-joined"
   when: cluster_health.json.number_of_nodes == 1 and cluster_health_after_restart.json.number_of_nodes == 1
-
-- name: Deny all incoming requests on 9300 once unit is part of cluster
-  tags:
-    - peer-relation-joined
-  ufw: rule=deny port=9300
