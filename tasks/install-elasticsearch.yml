@@ -17,10 +17,13 @@
   when: apt_repository != ""
 
 - name: Install dependent packages.
-  apt: pkg=openjdk-7-jre-headless state=latest update_cache=yes
+  apt: pkg={{ item }} state=latest update_cache=yes
   tags:
     - install
     - upgrade-charm
+  with_items:
+    - openjdk-7-jre-headless
+    - ufw
 
 - name: Check for local elasticsearch.deb in payload.
   stat: path=files/elasticsearch.deb

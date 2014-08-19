@@ -33,7 +33,7 @@ Deploy three or more units with:
 
 And when they have started you can inspect the cluster health:
 
-    juju ssh elasticsearch/0 "curl http://localhost:9200/_cat/health?v"
+    juju run --unit elasticsearch/0 "curl http://localhost:9200/_cat/health?v"
     epoch      timestamp cluster       status node.total node.data shards ...
     1404728290 10:18:10  elasticsearch green           2         2      0
 

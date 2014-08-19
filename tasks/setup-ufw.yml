@@ -1,0 +1,29 @@
+# XXX 2014-07-08 michael nelson ip6 not supported on image (?)
+# ufw errors unless you switch off ipv6 support. Not sure if it's
+# related to the kernel used on the cloud image, but the actual
+# error is:
+# ip6tables v1.4.21: can't initialize ip6tables table `filter':
+# Table does not exist (do you need to insmod?)
+# Perhaps ip6tables or your kernel needs to be upgraded.
+- name: Update ufw config to avoid error
+  lineinfile: dest=/etc/default/ufw
+              regexp="^IPV6=yes$"
+              line="IPV6=no"
+
+# XXX 2014-07-30 michael nelson: It'd be much nicer if we could
+# just render a config file for ufw, as it would be idempotent.
+# As it is, there isn't a way to do that (afaics), so instead we
+# reset the firewall rules each time based on the current clients.
+- name: Reset firewall
+  ufw: state=reset policy=allow logging=on
+
+- name: Turn on fire wall with logging.
+  ufw: state=enabled policy=allow logging=on
+
+- name: Open the firewall for all clients
+  ufw: rule=allow src={{ item.value['private-address'] }} port=9200 proto=tcp
+  with_dict: relations["client"]["{{ client_relation_id }}"] | default({})
+  when: not item.key.startswith(service_name)
+
+- name: Deny all other requests on 9200
+  ufw: rule=deny port=9200

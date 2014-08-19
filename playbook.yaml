@@ -10,9 +10,19 @@
     - name: Restart ElasticSearch
       service: name=elasticsearch state=restarted
 
+  vars:
+    - service_name: "{{ local_unit.split('/')[0] }}"
+    - client_relation_id: "{{ relations['client'].keys()[0] | default('') }}"
+
   tasks:
 
     - include: tasks/install-elasticsearch.yml
+    - include: tasks/setup-ufw.yml
+      tags:
+        - install
+        - upgrade-charm
+        - client-relation-joined
+        - client-relation-departed
     - include: tasks/peer-relations.yml
 
     - name: Update configuration

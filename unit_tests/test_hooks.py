@@ -44,6 +44,14 @@ class InstallHookTestCase(unittest.TestCase):
         execd = self.mock_charmhelpers.payload.execd
         execd.execd_preinstall.assert_called_once_with()
 
+    def test_copys_backported_ansible_modules(self):
+        hooks.execute(['install'])
+
+        rsync = self.mock_charmhelpers.core.host.rsync
+        rsync.assert_called_once_with(
+            'ansible_module_backports',
+            '/usr/share/ansible')
+
 
 class DefaultHooksTestCase(unittest.TestCase):
 

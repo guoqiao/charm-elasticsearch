@@ -4,6 +4,7 @@
 import sys
 import charmhelpers.contrib.ansible
 import charmhelpers.payload.execd
+import charmhelpers.core.host
 
 
 hooks = charmhelpers.contrib.ansible.AnsibleHooks(
@@ -17,8 +18,8 @@ hooks = charmhelpers.contrib.ansible.AnsibleHooks(
         'start',
         'stop',
         'upgrade-charm',
-        'client-relation-changed',
         'client-relation-joined',
+        'client-relation-departed',
     ])
 
 
@@ -29,6 +30,12 @@ def install():
     charmhelpers.payload.execd.execd_preinstall()
     charmhelpers.contrib.ansible.install_ansible_support(
         from_ppa=False)
+
+    # We copy the backported ansible modules here because they need to be
+    # in place by the time ansible runs any hook.
+    charmhelpers.core.host.rsync(
+        'ansible_module_backports',
+        '/usr/share/ansible')
 
 
 if __name__ == "__main__":
