@@ -13,7 +13,6 @@ peers:
 provides:
   client:
     interface: elasticsearch
-    sets: [cluster-name, host, port]
   nrpe-external-master:
      interface: nrpe-external-master
      scope: container
