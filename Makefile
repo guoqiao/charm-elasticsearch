@@ -10,7 +10,7 @@ lint:
 
 test:
 	@echo Starting unit tests...
-	@PYTHONPATH=./hooks $(PYTHON) /usr/bin/nosetests3 --nologcapture unit_tests
+	@PYTHONPATH=./hooks $(PYTHON) unit_tests/test_hooks.py
 
 deploy:
 	@echo Deploying local elasticsearch charm

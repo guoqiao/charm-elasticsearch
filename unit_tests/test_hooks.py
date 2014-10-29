@@ -107,3 +107,7 @@ class HooksTestCase(unittest.TestCase):
                 mock.call('playbook.yaml',
                           tags=[hook]),
             ], mock_apply_playbook.call_args_list)
+
+
+if __name__ == '__main__':
+    unittest.main()
