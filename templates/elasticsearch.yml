@@ -5,10 +5,6 @@ cluster.name: {{ cluster_name }}
 http.port: 9200
 discovery.zen.ping.multicast.enabled: false
 discovery.zen.ping.unicast.hosts:
-{% for reln in relations.peer.values() %}
-  {%- for unit_id, reln_data in reln.items() %}
-    {%- if unit_id != local_unit %}
-  - {{ reln_data['private-address'] }}
-{% endif %}
-  {%- endfor %}
+{% for reln in relations.peer %}
+  - {{ reln['private-address'] }}
 {% endfor %}
