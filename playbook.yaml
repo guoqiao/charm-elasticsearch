@@ -21,6 +21,7 @@
       tags:
         - install
         - upgrade-charm
+        - config-changed
         - client-relation-joined
         - client-relation-departed
         - peer-relation-joined
