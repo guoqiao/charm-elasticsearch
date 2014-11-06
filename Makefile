@@ -10,12 +10,14 @@ lint:
 
 test:
 	@echo Starting unit tests...
-	@PYTHONPATH=./hooks $(PYTHON) /usr/bin/nosetests3 --nologcapture unit_tests
+	@PYTHONPATH=./hooks $(PYTHON) unit_tests/test_hooks.py
 
 deploy:
 	@echo Deploying local elasticsearch charm
 	@juju deploy --num-units=2 --repository=../.. local:trusty/elasticsearch
 
+health:
+	juju ssh elasticsearch/0 "curl http://localhost:9200/_cluster/health?pretty=true"
 
 # The following targets are used for charm maintenance only.
 bin/charm_helpers_sync.py:

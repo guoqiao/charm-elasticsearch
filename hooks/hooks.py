@@ -13,6 +13,7 @@ hooks = charmhelpers.contrib.ansible.AnsibleHooks(
         'config-changed',
         'cluster-relation-joined',
         'peer-relation-joined',
+        'peer-relation-departed',
         'nrpe-external-master-relation-changed',
         'rest-relation-joined',
         'start',

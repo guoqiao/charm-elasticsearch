@@ -54,4 +54,3 @@
     - peer-relation-joined
   fail: msg="Unit failed to join cluster during peer-relation-joined"
   when: cluster_health.json.number_of_nodes == 1 and cluster_health_after_restart.json.number_of_nodes == 1
-

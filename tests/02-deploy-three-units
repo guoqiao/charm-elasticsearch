@@ -1,13 +1,8 @@
 #!/usr/bin/python3
-import json
-import requests
-import sys
-
 import amulet
-
 import helpers
 
-d = amulet.Deployment()
+d = amulet.Deployment(series='trusty')
 
 d.add('elasticsearch', units=3)
 
@@ -19,3 +14,5 @@ if health['number_of_nodes'] != 3:
     amulet.raise_status(amulet.FAIL, msg=msg)
     msg = ("Expected at least 3 nodes in cluster with 3 units deployed, "
            "got {}".format(health['number_of_nodes']))
+
+print("Successfully deployed cluster of 3 units.")

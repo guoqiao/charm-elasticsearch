@@ -1,10 +1,8 @@
 #!/usr/bin/python3
-import sys
-
 import amulet
 import helpers
 
-d = amulet.Deployment()
+d = amulet.Deployment(series='trusty')
 
 d.add('elasticsearch')
 config = {'cluster-name': 'unique-name'}
@@ -20,3 +18,5 @@ if cluster_name != 'unique-name':
     msg = ("Expected cluster name to be 'unique-name' "
            "but was '{}'.".format(cluster_name))
     amulet.raise_status(amulet.FAIL, msg=msg)
+
+print("Successfully created cluster with non-default cluster-name.")
