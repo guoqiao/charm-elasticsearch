@@ -1,7 +1,7 @@
 options:
   apt-repository:
     type: string
-    default: "deb http://packages.elasticsearch.org/elasticsearch/1.2/debian stable main"
+    default: "deb [arch=amd64] http://packages.elasticsearch.org/elasticsearch/1.2/debian stable main"
     description: |
       A deb-line for the apt archive which contains the elasticsearch package.
       This is necessary until elasticsearch gets into the debian/ubuntu archives.
