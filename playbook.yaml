@@ -60,3 +60,11 @@
         cluster-name={{ cluster_name }}
         host={{ ansible_default_ipv4.address }}
         port=9200
+
+    - name: Relate logs
+      tags:
+        - logs-relation-joined
+      command: >
+        relation-set
+        file=/var/log/elasticsearch/elasticsearch.log
+        type=elasticsearch
