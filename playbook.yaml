@@ -24,10 +24,6 @@
         - config-changed
         - client-relation-joined
         - client-relation-departed
-        - data-relation-joined
-        - data-relation-changed
-        - data-relation-departed
-        - data-relation-broken
         - peer-relation-joined
         - peer-relation-departed
 
@@ -64,3 +60,13 @@
         cluster-name={{ cluster_name }}
         host={{ ansible_default_ipv4.address }}
         port=9200
+
+    # A bug in the ansible hooks() helper requires at least
+    # one task to be tagged.
+    - name: Empty task to keep ansible helper satisfied.
+      debug: msg="Noop ansible task."
+      tags:
+        - data-relation-joined
+        - data-relation-changed
+        - data-relation-departed
+        - data-relation-broken
