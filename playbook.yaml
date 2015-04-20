@@ -24,6 +24,10 @@
         - config-changed
         - client-relation-joined
         - client-relation-departed
+        - data-relation-joined
+        - data-relation-changed
+        - data-relation-departed
+        - data-relation-broken
         - peer-relation-joined
         - peer-relation-departed
 
