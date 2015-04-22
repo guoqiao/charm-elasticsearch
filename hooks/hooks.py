@@ -91,7 +91,7 @@ def migrate_to_mount(new_path):
         options=['--archive'])
     shutil.rmtree(old_path)
     os.symlink(new_path, old_path)
-    host.service_start('elasticsearch')
+    charmhelpers.core.host.service_start('elasticsearch')
 
 
 if __name__ == "__main__":
