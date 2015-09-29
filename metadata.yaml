@@ -4,7 +4,7 @@ maintainer: Michael Nelson <michael.nelson@canonical.com>
 description: |
   Distributed RESTful search and analytics
   Read more at http://www.elasticsearch.org
-categories:
+tags:
   - misc
 subordinate: false
 peers:

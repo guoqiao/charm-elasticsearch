@@ -10,6 +10,13 @@ options:
     default: "http://packages.elasticsearch.org/GPG-KEY-elasticsearch"
     description: |
       The url for the key for the apt-repository.
+  apt-key-validate-certs:
+    type: string
+    default: "yes"
+    description: |
+      By default the SSL certificate for GPG keys is validated.  This option can
+      be set to no to skip that process in case of self signed or invalidated
+      certificates.
   cluster-name:
     type: string
     default: "elasticsearch"
