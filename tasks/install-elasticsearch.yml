@@ -3,7 +3,7 @@
     - install
     - upgrade-charm
     - config-changed
-  apt_key: url={{ apt_key_url }} state=present
+  apt_key: url={{ apt_key_url }} state=present id={{gpg_key_id}}
   when: apt_key_url != ""
 
 - name: Add apt archive.

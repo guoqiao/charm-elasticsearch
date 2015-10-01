@@ -10,6 +10,11 @@ options:
     default: "http://packages.elasticsearch.org/GPG-KEY-elasticsearch"
     description: |
       The url for the key for the apt-repository.
+  gpg-key-id:
+    type: string
+    default: D88E42B4
+    description: |
+      Elasticsearch's GPG fingerprint to validate the apt key
   cluster-name:
     type: string
     default: "elasticsearch"
