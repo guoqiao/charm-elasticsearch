@@ -22,6 +22,7 @@ hooks = charmhelpers.contrib.ansible.AnsibleHooks(
         'data-relation-departed',
         'data-relation-broken',
         'peer-relation-joined',
+        'peer-relation-changed',
         'peer-relation-departed',
         'nrpe-external-master-relation-changed',
         'rest-relation-joined',
