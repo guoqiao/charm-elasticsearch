@@ -60,3 +60,21 @@
         cluster-name={{ cluster_name }}
         host={{ ansible_default_ipv4.address }}
         port=9200
+
+    - name: Relate logs
+      tags:
+        - logs-relation-joined
+      command: >
+        relation-set
+        file=/var/log/elasticsearch/elasticsearch.log
+        type=elasticsearch
+
+    # A bug in the ansible hooks() helper requires at least
+    # one task to be tagged.
+    - name: Empty task to keep ansible helper satisfied.
+      debug: msg="Noop ansible task."
+      tags:
+        - data-relation-joined
+        - data-relation-changed
+        - data-relation-departed
+        - data-relation-broken

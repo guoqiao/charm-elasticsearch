@@ -16,3 +16,8 @@ provides:
   nrpe-external-master:
      interface: nrpe-external-master
      scope: container
+  logs:
+    interface: logs
+  data:
+    interface: block-storage
+    scope: container
