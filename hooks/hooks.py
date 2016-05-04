@@ -86,7 +86,7 @@ def migrate_to_mount(new_path):
         raise RuntimeError('Persistent storage contains old data. '
                            'Please investigate and migrate data manually '
                            'to: {}'.format(new_path))
-    os.chmod(new_path, 0700)
+    os.chmod(new_path, 0o700)
     charmhelpers.core.host.service_stop('elasticsearch')
     # Ensure we have trailing slashes
     charmhelpers.core.host.rsync(os.path.join(old_path, ''),
