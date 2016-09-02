@@ -78,3 +78,18 @@
         - data-relation-changed
         - data-relation-departed
         - data-relation-broken
+
+    # A bug in the ansible hooks() helper requires at least
+    # one task to be tagged.
+    - name: Set exit user messaging.
+      command: >
+        status-set
+        active
+        Ready
+      tags:
+        - client-relation-joined
+        - client-relation-departed
+        - peer-relation-joined
+        - peer-relation-departed
+        - start
+
