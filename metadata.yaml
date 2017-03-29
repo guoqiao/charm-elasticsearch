@@ -10,7 +10,6 @@ subordinate: false
 series:
   - xenial
   - trusty
-  - precise
 peers:
   peer:
     interface: http
