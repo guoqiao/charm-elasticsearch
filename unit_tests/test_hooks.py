@@ -66,7 +66,7 @@ class HooksTestCase(unittest.TestCase):
         hooks.execute(['install'])
 
         self.assertEqual([
-            mock.call('playbook.yaml', tags=['install']),
+            mock.call('playbook.yaml', tags=['install'], extra_vars=None)
         ], self.mock_ansible.apply_playbook.call_args_list)
 
     def test_executes_preinstall(self):
@@ -104,7 +104,7 @@ class HooksTestCase(unittest.TestCase):
             hooks.execute([hook])
 
             self.assertEqual([
-                mock.call('playbook.yaml',
+                mock.call('playbook.yaml', extra_vars=None,
                           tags=[hook]),
             ], mock_apply_playbook.call_args_list)
 
