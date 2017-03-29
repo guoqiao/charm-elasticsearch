@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Setup hooks for the elasticsearch charm."""
 
 import sys
