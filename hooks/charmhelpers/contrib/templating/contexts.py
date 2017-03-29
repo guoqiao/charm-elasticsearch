@@ -1,3 +1,17 @@
+# Copyright 2014-2015 Canonical Limited.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # Copyright 2013 Canonical Ltd.
 #
 # Authors:
@@ -5,6 +19,8 @@
 """A helper to create a yaml cache of config with namespaced relation data."""
 import os
 import yaml
+
+import six
 
 import charmhelpers.core.hookenv
 
@@ -62,7 +78,7 @@ def update_relations(context, namespace_separator=':'):
 
 
 def juju_state_to_yaml(yaml_path, namespace_separator=':',
-                       allow_hyphens_in_keys=True):
+                       allow_hyphens_in_keys=True, mode=None):
     """Update the juju config and state in a yaml file.
 
     This includes any current relation-get data, and the charm
@@ -92,9 +108,9 @@ def juju_state_to_yaml(yaml_path, namespace_separator=':',
 
     # Don't use non-standard tags for unicode which will not
     # work when salt uses yaml.load_safe.
-    yaml.add_representer(unicode, lambda dumper,
-                         value: dumper.represent_scalar(
-                             u'tag:yaml.org,2002:str', value))
+    yaml.add_representer(six.text_type,
+                         lambda dumper, value: dumper.represent_scalar(
+                             six.u('tag:yaml.org,2002:str'), value))
 
     yaml_dir = os.path.dirname(yaml_path)
     if not os.path.exists(yaml_dir):
@@ -104,7 +120,12 @@ def juju_state_to_yaml(yaml_path, namespace_separator=':',
         with open(yaml_path, "r") as existing_vars_file:
             existing_vars = yaml.load(existing_vars_file.read())
     else:
+        with open(yaml_path, "w+"):
+            pass
         existing_vars = {}
+
+    if mode is not None:
+        os.chmod(yaml_path, mode)
 
     if not allow_hyphens_in_keys:
         config = dict_keys_without_hyphens(config)

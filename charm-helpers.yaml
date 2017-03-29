@@ -6,3 +6,4 @@ include:
     - contrib.ansible|inc=*
     - contrib.templating.contexts
     - payload.execd|inc=*
+    - osplatform

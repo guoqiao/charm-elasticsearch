@@ -1,6 +1,22 @@
+# Copyright 2014-2015 Canonical Limited.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 import yaml
+
 from charmhelpers.core import hookenv
+from charmhelpers.core import host
 from charmhelpers.core import templating
 
 from charmhelpers.core.services.base import ManagerCallback
@@ -29,12 +45,14 @@ class RelationContext(dict):
     """
     name = None
     interface = None
-    required_keys = []
 
     def __init__(self, name=None, additional_required_keys=None):
+        if not hasattr(self, 'required_keys'):
+            self.required_keys = []
+
         if name is not None:
             self.name = name
-        if additional_required_keys is not None:
+        if additional_required_keys:
             self.required_keys.extend(additional_required_keys)
         self.get_data()
 
@@ -118,7 +136,10 @@ class MysqlRelation(RelationContext):
     """
     name = 'db'
     interface = 'mysql'
-    required_keys = ['host', 'user', 'password', 'database']
+
+    def __init__(self, *args, **kwargs):
+        self.required_keys = ['host', 'user', 'password', 'database']
+        RelationContext.__init__(self, *args, **kwargs)
 
 
 class HttpRelation(RelationContext):
@@ -130,7 +151,10 @@ class HttpRelation(RelationContext):
     """
     name = 'website'
     interface = 'http'
-    required_keys = ['host', 'port']
+
+    def __init__(self, *args, **kwargs):
+        self.required_keys = ['host', 'port']
+        RelationContext.__init__(self, *args, **kwargs)
 
     def provide_data(self):
         return {
@@ -196,7 +220,7 @@ class StoredContext(dict):
         if not os.path.isabs(file_name):
             file_name = os.path.join(hookenv.charm_dir(), file_name)
         with open(file_name, 'w') as file_stream:
-            os.fchmod(file_stream.fileno(), 0600)
+            os.fchmod(file_stream.fileno(), 0o600)
             yaml.dump(config_data, file_stream)
 
     def read_context(self, file_name):
@@ -211,28 +235,55 @@ class StoredContext(dict):
 
 class TemplateCallback(ManagerCallback):
     """
-    Callback class that will render a Jinja2 template, for use as a ready action.
+    Callback class that will render a Jinja2 template, for use as a ready
+    action.
 
-    :param str source: The template source file, relative to `$CHARM_DIR/templates`
-    :param str target: The target to write the rendered template to
+    :param str source: The template source file, relative to
+        `$CHARM_DIR/templates`
+
+    :param str target: The target to write the rendered template to (or None)
     :param str owner: The owner of the rendered file
     :param str group: The group of the rendered file
     :param int perms: The permissions of the rendered file
+    :param partial on_change_action: functools partial to be executed when
+                                     rendered file changes
+    :param jinja2 loader template_loader: A jinja2 template loader
+
+    :return str: The rendered template
     """
-    def __init__(self, source, target, owner='root', group='root', perms=0444):
+    def __init__(self, source, target,
+                 owner='root', group='root', perms=0o444,
+                 on_change_action=None, template_loader=None):
         self.source = source
         self.target = target
         self.owner = owner
         self.group = group
         self.perms = perms
+        self.on_change_action = on_change_action
+        self.template_loader = template_loader
 
     def __call__(self, manager, service_name, event_name):
+        pre_checksum = ''
+        if self.on_change_action and os.path.isfile(self.target):
+            pre_checksum = host.file_hash(self.target)
         service = manager.get_service(service_name)
-        context = {}
+        context = {'ctx': {}}
         for ctx in service.get('required_data', []):
             context.update(ctx)
-        templating.render(self.source, self.target, context,
-                          self.owner, self.group, self.perms)
+            context['ctx'].update(ctx)
+
+        result = templating.render(self.source, self.target, context,
+                                   self.owner, self.group, self.perms,
+                                   template_loader=self.template_loader)
+        if self.on_change_action:
+            if pre_checksum == host.file_hash(self.target):
+                hookenv.log(
+                    'No change detected: {}'.format(self.target),
+                    hookenv.DEBUG)
+            else:
+                self.on_change_action()
+
+        return result
 
 
 # Convenience aliases for templates

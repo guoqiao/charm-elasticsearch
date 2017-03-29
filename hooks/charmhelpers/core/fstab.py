@@ -1,12 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__author__ = 'Jorge Niedbalski R. <jorge.niedbalski@canonical.com>'
+# Copyright 2014-2015 Canonical Limited.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
+import io
 import os
 
+__author__ = 'Jorge Niedbalski R. <jorge.niedbalski@canonical.com>'
 
-class Fstab(file):
+
+class Fstab(io.FileIO):
     """This class extends file in order to implement a file reader/writer
     for file `/etc/fstab`
     """
@@ -24,8 +39,8 @@ class Fstab(file):
                 options = "defaults"
 
             self.options = options
-            self.d = d
-            self.p = p
+            self.d = int(d)
+            self.p = int(p)
 
         def __eq__(self, o):
             return str(self) == str(o)
@@ -45,7 +60,7 @@ class Fstab(file):
             self._path = path
         else:
             self._path = self.DEFAULT_PATH
-        file.__init__(self, self._path, 'r+')
+        super(Fstab, self).__init__(self._path, 'rb+')
 
     def _hydrate_entry(self, line):
         # NOTE: use split with no arguments to split on any
@@ -58,8 +73,9 @@ class Fstab(file):
     def entries(self):
         self.seek(0)
         for line in self.readlines():
+            line = line.decode('us-ascii')
             try:
-                if not line.startswith("#"):
+                if line.strip() and not line.strip().startswith("#"):
                     yield self._hydrate_entry(line)
             except ValueError:
                 pass
@@ -75,18 +91,18 @@ class Fstab(file):
         if self.get_entry_by_attr('device', entry.device):
             return False
 
-        self.write(str(entry) + '\n')
+        self.write((str(entry) + '\n').encode('us-ascii'))
         self.truncate()
         return entry
 
     def remove_entry(self, entry):
         self.seek(0)
 
-        lines = self.readlines()
+        lines = [l.decode('us-ascii') for l in self.readlines()]
 
         found = False
         for index, line in enumerate(lines):
-            if not line.startswith("#"):
+            if line.strip() and not line.strip().startswith("#"):
                 if self._hydrate_entry(line) == entry:
                     found = True
                     break
@@ -97,7 +113,7 @@ class Fstab(file):
         lines.remove(line)
 
         self.seek(0)
-        self.write(''.join(lines))
+        self.write(''.join(lines).encode('us-ascii'))
         self.truncate()
         return True
 

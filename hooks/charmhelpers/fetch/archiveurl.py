@@ -1,8 +1,20 @@
+# Copyright 2014-2015 Canonical Limited.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
-import urllib2
-from urllib import urlretrieve
-import urlparse
 import hashlib
+import re
 
 from charmhelpers.fetch import (
     BaseFetchHandler,
@@ -13,6 +25,41 @@ from charmhelpers.payload.archive import (
     extract,
 )
 from charmhelpers.core.host import mkdir, check_hash
+
+import six
+if six.PY3:
+    from urllib.request import (
+        build_opener, install_opener, urlopen, urlretrieve,
+        HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler,
+    )
+    from urllib.parse import urlparse, urlunparse, parse_qs
+    from urllib.error import URLError
+else:
+    from urllib import urlretrieve
+    from urllib2 import (
+        build_opener, install_opener, urlopen,
+        HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler,
+        URLError
+    )
+    from urlparse import urlparse, urlunparse, parse_qs
+
+
+def splituser(host):
+    '''urllib.splituser(), but six's support of this seems broken'''
+    _userprog = re.compile('^(.*)@(.*)$')
+    match = _userprog.match(host)
+    if match:
+        return match.group(1, 2)
+    return None, host
+
+
+def splitpasswd(user):
+    '''urllib.splitpasswd(), but six's support of this is missing'''
+    _passwdprog = re.compile('^([^:]*):(.*)$', re.S)
+    match = _passwdprog.match(user)
+    if match:
+        return match.group(1, 2)
+    return user, None
 
 
 class ArchiveUrlFetchHandler(BaseFetchHandler):
@@ -28,6 +75,8 @@ class ArchiveUrlFetchHandler(BaseFetchHandler):
     def can_handle(self, source):
         url_parts = self.parse_url(source)
         if url_parts.scheme not in ('http', 'https', 'ftp', 'file'):
+            # XXX: Why is this returning a boolean and a string? It's
+            # doomed to fail since "bool(can_handle('foo://'))"  will be True.
             return "Wrong source type"
         if get_archive_handler(self.base_url(source)):
             return True
@@ -42,22 +91,22 @@ class ArchiveUrlFetchHandler(BaseFetchHandler):
         """
         # propogate all exceptions
         # URLError, OSError, etc
-        proto, netloc, path, params, query, fragment = urlparse.urlparse(source)
+        proto, netloc, path, params, query, fragment = urlparse(source)
         if proto in ('http', 'https'):
-            auth, barehost = urllib2.splituser(netloc)
+            auth, barehost = splituser(netloc)
             if auth is not None:
-                source = urlparse.urlunparse((proto, barehost, path, params, query, fragment))
-                username, password = urllib2.splitpasswd(auth)
-                passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
+                source = urlunparse((proto, barehost, path, params, query, fragment))
+                username, password = splitpasswd(auth)
+                passman = HTTPPasswordMgrWithDefaultRealm()
                 # Realm is set to None in add_password to force the username and password
                 # to be used whatever the realm
                 passman.add_password(None, source, username, password)
-                authhandler = urllib2.HTTPBasicAuthHandler(passman)
-                opener = urllib2.build_opener(authhandler)
-                urllib2.install_opener(opener)
-        response = urllib2.urlopen(source)
+                authhandler = HTTPBasicAuthHandler(passman)
+                opener = build_opener(authhandler)
+                install_opener(opener)
+        response = urlopen(source)
         try:
-            with open(dest, 'w') as dest_file:
+            with open(dest, 'wb') as dest_file:
                 dest_file.write(response.read())
         except Exception as e:
             if os.path.isfile(dest):
@@ -91,18 +140,26 @@ class ArchiveUrlFetchHandler(BaseFetchHandler):
         url_parts = self.parse_url(source)
         dest_dir = os.path.join(os.environ.get('CHARM_DIR'), 'fetched')
         if not os.path.exists(dest_dir):
-            mkdir(dest_dir, perms=0755)
+            mkdir(dest_dir, perms=0o755)
         dld_file = os.path.join(dest_dir, os.path.basename(url_parts.path))
         try:
             self.download(source, dld_file)
-        except urllib2.URLError as e:
+        except URLError as e:
             raise UnhandledSource(e.reason)
         except OSError as e:
             raise UnhandledSource(e.strerror)
-        options = urlparse.parse_qs(url_parts.fragment)
+        options = parse_qs(url_parts.fragment)
         for key, value in options.items():
-            if key in hashlib.algorithms:
-                check_hash(dld_file, value, key)
+            if not six.PY3:
+                algorithms = hashlib.algorithms
+            else:
+                algorithms = hashlib.algorithms_available
+            if key in algorithms:
+                if len(value) != 1:
+                    raise TypeError(
+                        "Expected 1 hash value, not %d" % len(value))
+                expected = value[0]
+                check_hash(dld_file, expected, key)
         if checksum:
             check_hash(dld_file, checksum, hash_type)
         return extract(dld_file, dest)
