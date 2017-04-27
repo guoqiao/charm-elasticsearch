@@ -1,0 +1,29 @@
+options:
+  apt-repository:
+    type: string
+    default: "deb http://packages.elastic.co/elasticsearch/2.x/debian stable main"
+    description: |
+      A deb-line for the apt archive which contains the elasticsearch package.
+      This is necessary until elasticsearch gets into the debian/ubuntu archives.
+  apt-key-url:
+    type: string
+    default: "http://packages.elasticsearch.org/GPG-KEY-elasticsearch"
+    description: |
+      The url for the key for the apt-repository.
+  gpg-key-id:
+    type: string
+    default: D88E42B4
+    description: |
+      Elasticsearch's GPG fingerprint to validate the apt key
+  cluster-name:
+    type: string
+    default: "elasticsearch"
+    description: |
+      This sets the elasticsearch cluster name.
+  firewall_enabled:
+    type: boolean
+    default: true
+    description: |
+      By default, the admin and peer ports (9200 and 9300) are only accessible
+      to clients and peers respectively. Switch this to false to enable access
+      from any machine.

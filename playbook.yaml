@@ -1,0 +1,95 @@
+- hosts: localhost
+  roles:
+    - role: nrpe
+      check_name: check_http
+      check_params: -H localhost -u /_cluster/health -p 9200 -w 2 -c 3 -s green
+      service_description: "Verify the cluster health is green."
+
+  handlers:
+
+    - name: Restart ElasticSearch
+      service: name=elasticsearch state=restarted
+
+  vars:
+    - service_name: "{{ local_unit.split('/')[0] }}"
+
+  tasks:
+
+    - include: tasks/install-elasticsearch.yml
+    - include: tasks/peer-relations.yml
+    - include: tasks/setup-ufw.yml
+      tags:
+        - install
+        - upgrade-charm
+        - config-changed
+        - client-relation-joined
+        - client-relation-departed
+        - peer-relation-joined
+        - peer-relation-departed
+
+    - name: Update configuration
+      tags:
+        - config-changed
+      template: src={{ charm_dir }}/templates/elasticsearch.yml
+                dest=/etc/elasticsearch/elasticsearch.yml
+                mode=0644
+                backup=yes
+      notify:
+        - Restart ElasticSearch
+
+    - name: Open ES Port when exposed
+      command: open-port 9200
+      tags:
+        - start
+
+    - name: Start ElasticSearch
+      service: name=elasticsearch state=started
+      tags:
+        - start
+
+    - name: Stop ElasticSearch
+      service: name=elasticsearch state=stopped
+      tags:
+        - stop
+
+    - name: Relate the cluster name and host.
+      tags:
+        - client-relation-joined
+      command: >
+        relation-set
+        cluster-name={{ cluster_name }}
+        host={{ ansible_default_ipv4.address }}
+        port=9200
+
+    - name: Relate logs
+      tags:
+        - logs-relation-joined
+      command: >
+        relation-set
+        file=/var/log/elasticsearch/elasticsearch.log
+        type=elasticsearch
+
+    # A bug in the ansible hooks() helper requires at least
+    # one task to be tagged.
+    - name: Empty task to keep ansible helper satisfied.
+      debug: msg="Noop ansible task."
+      tags:
+        - data-relation-joined
+        - data-relation-changed
+        - data-relation-departed
+        - data-relation-broken
+
+    # A bug in the ansible hooks() helper requires at least
+    # one task to be tagged.
+    - name: Set exit user messaging.
+      command: >
+        status-set
+        active
+        Ready
+      tags:
+        - client-relation-joined
+        - client-relation-departed
+        - peer-relation-joined
+        - peer-relation-departed
+        - start
+

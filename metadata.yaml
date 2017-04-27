@@ -1,0 +1,23 @@
+name: elasticsearch
+summary: Open Source, Distributed, RESTful, Search Engine built on Apache Lucene
+maintainer: Michael Nelson <michael.nelson@canonical.com>
+description: |
+  Distributed RESTful search and analytics
+  Read more at http://www.elasticsearch.org
+tags:
+  - misc
+subordinate: false
+peers:
+  peer:
+    interface: http
+provides:
+  client:
+    interface: elasticsearch
+  nrpe-external-master:
+     interface: nrpe-external-master
+     scope: container
+  logs:
+    interface: logs
+  data:
+    interface: block-storage
+    scope: container

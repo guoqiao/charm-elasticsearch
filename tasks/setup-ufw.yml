@@ -1,0 +1,52 @@
+# XXX 2014-07-08 michael nelson ip6 not supported on image (?)
+# ufw errors unless you switch off ipv6 support. Not sure if it's
+# related to the kernel used on the cloud image, but the actual
+# error is:
+# ip6tables v1.4.21: can't initialize ip6tables table `filter':
+# Table does not exist (do you need to insmod?)
+# Perhaps ip6tables or your kernel needs to be upgraded.
+- name: Update ufw config to avoid error
+  lineinfile: dest=/etc/default/ufw
+              regexp="^IPV6=yes$"
+              line="IPV6=no"
+
+- name: Disable firewall only when explicitly configured to do so.
+  ufw: state=disabled
+  when: not firewall_enabled
+
+# XXX 2014-07-30 michael nelson: It'd be much nicer if we could
+# just render a config file for ufw, as it would be idempotent.
+# As it is, there isn't a way to do that (afaics), so instead we
+# reset the firewall rules each time based on the current clients.
+- name: Reset firewall
+  ufw: state=reset policy=allow logging=on
+  when: firewall_enabled
+
+- name: Turn on fire wall with logging.
+  ufw: state=enabled policy=allow logging=on
+  when: firewall_enabled
+
+- name: Open the firewall for all clients
+  ufw: rule=allow src={{ lookup('dns', item['private-address']) }} port=9200 proto=tcp
+  with_items: relations["client"]
+  when: firewall_enabled
+
+- name: Deny all other requests on 9200
+  ufw: rule=deny port=9200
+  when: firewall_enabled
+
+- name: Open the firewall for all peers
+  ufw: rule=allow src={{ lookup('dns', item['private-address']) }} port=9300 proto=tcp
+  with_items: relations["peer"]
+  when: firewall_enabled
+
+# Only deny incoming on 9300 once the unit is part of a cluster.
+- name: Record current cluster health
+  uri: url=http://localhost:9200/_cluster/health return_content=yes
+  register: cluster_health
+  ignore_errors: true
+  when: firewall_enabled
+
+- name: Deny all incoming requests on 9300 once unit is part of cluster
+  ufw: rule=deny port=9300
+  when: firewall_enabled and cluster_health|success and cluster_health.json.number_of_nodes > 1
