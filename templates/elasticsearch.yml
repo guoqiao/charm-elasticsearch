@@ -4,7 +4,9 @@
 cluster.name: {{ cluster_name }}
 http.port: 9200
 network.host: ["_site_", "_local_"]
+{% if len(relations.peer) > 0 %}
 discovery.zen.ping.unicast.hosts:
 {% for reln in relations.peer %}
   - {{ reln['private-address'] }}
 {% endfor %}
+{% endif %}
