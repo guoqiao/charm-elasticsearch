@@ -14,11 +14,11 @@ Excerpt from [elasticsearch.org](http://www.elasticsearch.org/overview/ "Elastic
 
 You can simply deploy one node with:
 
-    juju deploy cs:~ivoks/elasticsearch
+    juju deploy cs:~elasticsearch-charmers/elasticsearch
 
 You can also deploy and relate the Kibana dashboard:
 
-    juju deploy cs:~ivoks/kibana
+    juju deploy cs:~elasticsearch-charmers/kibana
     juju add-relation kibana elasticsearch
     juju expose kibana
 
@@ -29,7 +29,7 @@ all subsequent Elasticsearch units.
 
 Deploy three or more units with:
 
-    juju deploy -n3 cs:~ivoks/elasticsearch
+    juju deploy -n3 cs:~elasticsearch-charmers/elasticsearch
 
 And when they have started you can inspect the cluster health:
 
