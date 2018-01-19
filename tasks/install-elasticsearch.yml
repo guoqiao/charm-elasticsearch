@@ -22,7 +22,7 @@
     - install
     - upgrade-charm
   with_items:
-    - default-jre-headless
+    - openjdk-8-jre-headless
     - ufw
 
 - name: Check for local elasticsearch.deb in payload.

@@ -6,6 +6,7 @@ import charmhelpers.contrib.ansible
 import charmhelpers.payload.execd
 import charmhelpers.core.host
 from charmhelpers.core import hookenv
+from charmhelpers.fetch import add_source, apt_update
 import os
 import shutil
 
@@ -47,6 +48,11 @@ def install():
     charmhelpers.core.host.rsync(
         'ansible_module_backports',
         '/usr/share/ansible')
+
+    # No Java8 on trusty; add appropriate ppa before the install task runs.
+    if charmhelpers.core.host.lsb_release()['DISTRIB_CODENAME'] == 'trusty':
+        add_source("ppa:openjdk-r/ppa")
+        apt_update()
 
 
 @hooks.hook('data-relation-joined', 'data-relation-changed')
