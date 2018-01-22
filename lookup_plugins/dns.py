@@ -18,13 +18,32 @@ import socket
 
 from ansible import utils, errors
 
+try:
+    # ansible-2.x
+    from ansible.plugins.lookup import LookupBase
+except ImportError:
+    # ansible-1.x
+    class LookupBase(object):
+        def __init__(self, basedir=None, runner=None, **kwargs):
+            self.runner = runner
+            self.basedir = basedir or (self.runner.basedir
+                                       if self.runner
+                                       else None)
 
-class LookupModule (object):
-    def __init__(self, basedir=None, **kwargs):
-        self.basedir = basedir
+        def get_basedir(self, variables):
+            return self.basedir
 
-    def run(self, terms, inject=None, **kwargs):
-        terms = utils.listify_lookup_plugin_terms(terms, self.basedir, inject)
+
+class LookupModule(LookupBase):
+
+    # "variables" in ansible 2.x, "inject" in 1.x
+    def run(self, terms, inject=None, variables=None, **kwargs):
+        basedir = self.get_basedir(variables)
+
+        # ansible-1.x
+        if hasattr(utils, 'listify_lookup_plugin_terms'):
+            terms = utils.listify_lookup_plugin_terms(terms, basedir, inject)
+
         if isinstance(terms, basestring):
             terms = [terms]
         ret = []
