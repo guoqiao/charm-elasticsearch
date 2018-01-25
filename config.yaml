@@ -10,6 +10,11 @@ options:
     default: "http://packages.elasticsearch.org/GPG-KEY-elasticsearch"
     description: |
       The url for the key for the apt-repository.
+  es-heap-size:
+    type: int
+    default: 3
+    description: |
+      Maximum and initial JVM heap size for Elasticsearch, in GB
   gpg-key-id:
     type: string
     default: D88E42B4

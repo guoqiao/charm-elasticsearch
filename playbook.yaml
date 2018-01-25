@@ -27,11 +27,21 @@
         - peer-relation-joined
         - peer-relation-departed
 
-    - name: Update configuration
+    - name: Update elasticsearch.yml 
       tags:
         - config-changed
       template: src={{ charm_dir }}/templates/elasticsearch.yml
                 dest=/etc/elasticsearch/elasticsearch.yml
+                mode=0644
+                backup=yes
+      notify:
+        - Restart ElasticSearch
+
+    - name: Update ES JVM configuration 
+      tags:
+        - config-changed
+      template: src={{ charm_dir }}/templates/jvm.options
+                dest=/etc/elasticsearch/jvm.options
                 mode=0644
                 backup=yes
       notify:
