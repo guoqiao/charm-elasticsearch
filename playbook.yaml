@@ -27,7 +27,7 @@
         - peer-relation-joined
         - peer-relation-departed
 
-    - name: Update elasticsearch.yml 
+    - name: Update elasticsearch.yml
       tags:
         - config-changed
       template: src={{ charm_dir }}/templates/elasticsearch.yml
@@ -37,7 +37,7 @@
       notify:
         - Restart ElasticSearch
 
-    - name: Update ES JVM configuration 
+    - name: Update ES JVM configuration
       tags:
         - config-changed
       template: src={{ charm_dir }}/templates/jvm.options
@@ -102,4 +102,3 @@
         - peer-relation-joined
         - peer-relation-departed
         - start
-
