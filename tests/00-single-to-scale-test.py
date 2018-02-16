@@ -1,26 +1,32 @@
 #!/usr/bin/python3
 
 import amulet
-import unittest
-import requests
 import json
+import time
+import unittest
+
+CLUSTER_NAME = 'unique-name'
+CURL_TIMEOUT = 180
+JUJU_TIMEOUT = 1200
+
 
 class TestElasticsearch(unittest.TestCase):
 
     @classmethod
-    def setUpClass(self):
-        self.deployment = amulet.Deployment(series='trusty')
-        self.deployment.add('elasticsearch')
-        self.deployment.configure('elasticsearch',
-                                  {'cluster-name': 'unique-name'})
+    def setUpClass(cls):
+        cls.deployment = amulet.Deployment(series='xenial')
+        cls.deployment.add('elasticsearch')
+        cls.deployment.configure('elasticsearch',
+                                 {'cluster-name': CLUSTER_NAME})
 
         try:
-            self.deployment.setup(timeout=1200)
-            self.deployment.sentry.wait()
+            cls.deployment.setup(timeout=JUJU_TIMEOUT)
+            cls.deployment.sentry.wait_for_messages(
+                {"elasticsearch": "Ready"}, timeout=JUJU_TIMEOUT)
         except amulet.helpers.TimeoutError:
             amulet.raise_status(
                 amulet.SKIP, msg="Environment wasn't setup in time")
-
+        cls.elasticsearch = cls.deployment.sentry['elasticsearch'][0]
 
     def test_health(self):
         ''' Test the health of the node upon first deployment
@@ -36,7 +42,7 @@ class TestElasticsearch(unittest.TestCase):
             "message" : "testing"
         }'
         """
-        response = self.curl_on_unit(curl_command)
+        self.curl_on_unit(curl_command)
         health = self.get_index_health('test')
         assert health['status'] in ('green', 'yellow')
 
@@ -45,67 +51,64 @@ class TestElasticsearch(unittest.TestCase):
             application configuration'''
         health = self.get_cluster_health()
         cluster_name = health['cluster_name']
-        assert cluster_name == 'unique-name'
+        assert cluster_name == CLUSTER_NAME
 
     def test_scale(self):
         ''' Validate scaling the elasticsearch cluster yields a healthy
             response from the API, and all units are participating '''
         self.deployment.add_unit('elasticsearch', units=2)
-        self.deployment.setup(timeout=1200)
-        self.deployment.sentry.wait()
+        self.deployment.setup(timeout=JUJU_TIMEOUT)
+        self.deployment.sentry.wait_for_messages(
+            {"elasticsearch": "Ready"}, timeout=JUJU_TIMEOUT)
+
         health = self.get_cluster_health(wait_for_nodes=3)
         index_health = self.get_index_health('test')
         print(health['number_of_nodes'])
-        assert health['number_of_nodes'] == 3
+        assert health['number_of_nodes'] >= 3
         assert index_health['status'] in ('green', 'yellow')
 
-    def curl_on_unit(self, curl_command, unit_number=0):
-        unit = "elasticsearch"
-        response = self.deployment.sentry[unit][unit_number].run(curl_command)
-        if response[1] != 0:
-            msg = (
-                "Elastic search didn't respond to the command \n"
-                "'{curl_command}' as expected.\n"
-                "Return code: {return_code}\n"
-                "Result: {result}".format(
-                    curl_command=curl_command,
-                    return_code=response[1],
-                    result=response[0])
-            )
-            amulet.raise_status(amulet.FAIL, msg=msg)
+    def curl_on_unit(self, curl_command):
+        ''' Run a curl command on the sentried ES unit. We'll retry this
+            command until the CURL_TIMEOUT because it may take a few seconds
+            for the ES systemd service to start.'''
+        timeout = time.time() + CURL_TIMEOUT
+        while time.time() < timeout:
+            response = self.elasticsearch.run(curl_command)
+            # run returns a msg,retcode tuple
+            if response[1] == 0:
+                return json.loads(response[0])
+            else:
+                print("Unexpected curl response: {}. "
+                      "Retrying in 30s.".format(response[0]))
+                time.sleep(30)
 
-        return json.loads(response[0])
+        # we didn't get rc=0 in the alloted time; raise amulet failure
+        msg = (
+            "Elastic search didn't respond to the command \n"
+            "'{curl_command}' as expected.\n"
+            "Return code: {return_code}\n"
+            "Result: {result}".format(
+                curl_command=curl_command,
+                return_code=response[1],
+                result=response[0])
+        )
+        amulet.raise_status(amulet.FAIL, msg=msg)
 
-    def get_cluster_health(self, unit_number=0, wait_for_nodes=0,
-                           timeout=180):
-        curl_command = "curl http://localhost:9200"
-        curl_command = curl_command + "/_cluster/health?timeout={}s".format(
-            timeout)
+    def get_cluster_health(self, wait_for_nodes=0):
+        curl_url = "http://localhost:9200/_cluster/health"
         if wait_for_nodes > 0:
-            curl_command = curl_command + "&wait_for_nodes={}".format(
+            # Give the API up to 3m to determine if desired nodes are present
+            curl_url = curl_url + "?timeout=180s&wait_for_nodes=ge({})".format(
                 wait_for_nodes)
-
-        return self.curl_on_unit(curl_command, unit_number=unit_number)
-
-    def get_index_health(self, index_name, unit_number=0):
-        curl_command = "curl http://localhost:9200"
-        curl_command = curl_command + "/_cluster/health/" + index_name
+        curl_command = "curl -XGET '{}'".format(curl_url)
 
         return self.curl_on_unit(curl_command)
 
+    def get_index_health(self, index_name):
+        curl_url = "http://localhost:9200/_cluster/health/" + index_name
+        curl_command = "curl -XGET '{}'".format(curl_url)
 
-def check_response(response, expected_code=200):
-    if response.status_code != expected_code:
-        msg = (
-            "Elastic search did not respond as expected. \n"
-            "Expected status code: %{expected_code} \n"
-            "Status code: %{status_code} \n"
-            "Response text: %{response_text}".format(
-                expected_code=expected_code,
-                status_code=response.status_code,
-                response_text=response.text))
-
-        amulet.raise_status(amulet.FAIL, msg=msg)
+        return self.curl_on_unit(curl_command)
 
 
 if __name__ == "__main__":
