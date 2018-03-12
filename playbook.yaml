@@ -62,13 +62,19 @@
       tags:
         - stop
 
+    - name: Get the ingress address of client relation
+      tags:
+        - client-relation-joined
+      command: network-get client --ingress-address
+      register: client_ingress_address
+
     - name: Relate the cluster name and host.
       tags:
         - client-relation-joined
       command: >
         relation-set
         cluster-name={{ cluster_name }}
-        host={{ ansible_default_ipv4.address }}
+        host={{ client_ingress_address.stdout }}
         port=9200
 
     - name: Relate logs
