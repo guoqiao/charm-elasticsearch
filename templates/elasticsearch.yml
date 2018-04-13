@@ -3,7 +3,8 @@
 
 cluster.name: {{ cluster_name }}
 http.port: 9200
-network.host: ["_site_", "_local_"]
+network.bind_host: ["_site_", "_local_"]
+network.publish_host: {{ unit_private_address }}
 {% if (relations.peer is defined) and relations.peer %}
 discovery.zen.ping.unicast.hosts:
 {% for reln in relations.peer %}
