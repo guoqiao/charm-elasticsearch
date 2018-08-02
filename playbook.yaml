@@ -62,11 +62,11 @@
       tags:
         - stop
 
-    - name: Get the ingress address of client relation
+    - name: Get the primary address of client relation
       tags:
         - client-relation-joined
-      command: network-get client --ingress-address
-      register: client_ingress_address
+      command: network-get client --primary-address
+      register: client_primary_address
 
     - name: Relate the cluster name and host.
       tags:
@@ -74,7 +74,7 @@
       command: >
         relation-set
         cluster-name={{ cluster_name }}
-        host={{ client_ingress_address.stdout }}
+        host={{ client_primary_address.stdout }}
         port=9200
 
     - name: Relate logs
