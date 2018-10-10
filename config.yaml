@@ -20,6 +20,13 @@ options:
     default: D88E42B4
     description: |
       Elasticsearch's GPG fingerprint to validate the apt key
+  gpg-key:
+    type: string
+    default: ""
+    description: |
+      ES repository key to use. This option can be used instead of
+      apt-key-url and gpg-key in environments where proxy servers
+      block access to apt-key-url.
   cluster-name:
     type: string
     default: "elasticsearch"

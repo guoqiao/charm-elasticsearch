@@ -4,7 +4,7 @@
     - upgrade-charm
     - config-changed
   apt_key: url={{ apt_key_url }} state=present id={{gpg_key_id}}
-  when: apt_key_url != ""
+  when: (apt_key_url != "" and gpg_key == "")
 
 - name: Add apt archive.
   tags:
@@ -15,6 +15,14 @@
     repo: "{{ apt_repository }}"
     state: present
   when: apt_repository != ""
+
+- name: Add an apt key in a raw format.
+  tags:
+    - install
+    - upgrade-charm
+    - config-changed
+  apt_key: state=present data={{ gpg_key }}
+  when: (apt_repository != "" and gpg_key != "")
 
 - name: Install dependent packages.
   apt: pkg={{ item }} state=latest update_cache=yes
