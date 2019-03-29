@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """Setup hooks for the elasticsearch charm."""
 
+import os
+import shutil
 import sys
+import json
+import re
+import requests
+
 import charmhelpers.contrib.ansible
 import charmhelpers.payload.execd
 import charmhelpers.core.host
 from charmhelpers.core import hookenv
 from charmhelpers.fetch import add_source, apt_update
-import os
-import shutil
 
 mountpoint = '/srv/elasticsearch'
 
@@ -70,6 +74,54 @@ def data_relation():
 def data_relation_gone():
     hookenv.log('Data relation no longer present, stopping elasticsearch.')
     charmhelpers.core.host.service_stop('elasticsearch')
+
+
+def check_elasticsearch_health():
+    r = requests.get('http://127.0.0.1:9200/_cluster/health')
+    status = None
+    try:
+        status = json.loads(r.text)['status']
+    except:
+        pass
+    r = requests.get('http://127.0.0.1:9200/_cat/shards')
+    num_local_shards = 0
+    try:
+        for line in r.text.split('\n'):
+            key = re.compile("|s+{}\s+".format(hookenv.unit_private_ip()))
+            r = re.search(key, line)
+            if r:
+                num_local_shards += 1
+    except:
+        pass
+
+    return_status = True
+    if status != 'green':
+        hookenv.log("Cluster has status '{}'".format(status), hookenv.ERROR)
+        return_status=False
+
+    if num_local_shards == 0:
+        hookenv.log("Local host has no active shards", hookenv.ERROR)
+        return_status=False
+
+    return return_status
+
+
+@hooks.hook('update-status')
+def update_status():
+    hookenv.log('Updating status.')
+    if charmhelpers.core.host.service_running('elasticsearch'):
+        if not check_elasticsearch_health():
+            state = 'blocked'
+            message = ('elasticsearch is reporting problems with local host '
+                       '- please check health')
+        else:
+            state = 'active'
+            message = 'Unit is ready'
+    else:
+        state = 'blocked'
+        message = 'elasticsearch service not running'
+
+    hookenv.status_set(state, message)
 
 
 def migrate_to_mount(new_path):
