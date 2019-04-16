@@ -87,7 +87,7 @@ def check_elasticsearch_health():
     num_local_shards = 0
     try:
         for line in r.text.split('\n'):
-            key = re.compile("|s+{}\s+".format(hookenv.unit_private_ip()))
+            key = re.compile("\s+{}\s+".format(hookenv.unit_private_ip()))
             r = re.search(key, line)
             if r:
                 num_local_shards += 1
