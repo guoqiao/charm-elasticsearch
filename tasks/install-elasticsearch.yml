@@ -53,3 +53,9 @@
     - install
     - upgrade-charm
   when: stat_elasticsearch_deb.stat.exists == true
+
+- name: Correct permissions for Elasticsearch
+  file: dest=/etc/default/elasticsearch group=elasticsearch recurse=no
+  tags:
+    - install
+    - upgrade-charm
