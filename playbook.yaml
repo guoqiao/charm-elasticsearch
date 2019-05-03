@@ -53,7 +53,7 @@
         - start
 
     - name: Start ElasticSearch
-      service: name=elasticsearch state=started
+      service: name=elasticsearch state=started enabled=yes
       tags:
         - start
 
