@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Setup hooks for the elasticsearch charm."""
-
+import http
 import os
 import shutil
 import sys
@@ -77,33 +77,26 @@ def data_relation_gone():
 
 
 def check_elasticsearch_health():
-    r = requests.get('http://127.0.0.1:9200/_cluster/health')
+    """ Checks the health status of the current node on the cluster """
+
     status = None
+    r = requests.get('http://127.0.0.1:9200/_cluster/health')
+    if r.status_code != http.HTTPStatus.OK:
+        hookenv.log("Elastic Search cluster '{}' is not reachable.".format(hookenv.unit_private_ip()), hookenv.ERROR)
+        return False
+
     try:
         status = json.loads(r.text)['status']
-    except:
-        pass
-    r = requests.get('http://127.0.0.1:9200/_cat/shards')
-    num_local_shards = 0
-    try:
-        for line in r.text.split('\n'):
-            key = re.compile("\s+{}\s+".format(hookenv.unit_private_ip()))
-            r = re.search(key, line)
-            if r:
-                num_local_shards += 1
-    except:
+    except Exception:
         pass
 
-    return_status = True
     if status != 'green':
-        hookenv.log("Cluster has status '{}'".format(status), hookenv.ERROR)
-        return_status=False
+        hookenv.log("Elastic Search cluster '{}' is not in healthy (green) state.".format(hookenv.unit_private_ip()),
+                    hookenv.ERROR)
+        return False
 
-    if num_local_shards == 0:
-        hookenv.log("Local host has no active shards", hookenv.ERROR)
-        return_status=False
-
-    return return_status
+    hookenv.log("Elastic Search cluster '{}' is up.".format(hookenv.unit_private_ip()), hookenv.DEBUG)
+    return True
 
 
 @hooks.hook('update-status')
