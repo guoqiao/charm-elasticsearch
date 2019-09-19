@@ -68,6 +68,12 @@
       command: network-get client --primary-address
       register: client_primary_address
 
+    - name: Get the ElasticSearch version
+      tags:
+        - client-relation-joined
+      shell: apt-cache policy elasticsearch | grep -oe 'Installed:.*' | cut -d' ' -f2
+      register: es_version
+
     - name: Relate the cluster name and host.
       tags:
         - client-relation-joined
@@ -76,6 +82,7 @@
         cluster-name={{ cluster_name }}
         host={{ client_primary_address.stdout }}
         port=9200
+        version={{ es_version.stdout }}
 
     - name: Relate logs
       tags:
