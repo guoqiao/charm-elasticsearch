@@ -62,17 +62,25 @@
       tags:
         - stop
 
+    - name: Get the ElasticSearch version
+      tags:
+        - install
+        - upgrade-charm
+        - client-relation-joined
+      shell: apt-cache policy elasticsearch | grep -oe 'Installed:.*' | cut -d' ' -f2
+      register: es_version
+
+    - name: Set ElasticSearch version
+      command: application-version-set {{ es_version.stdout }}
+      tags:
+        - install
+        - upgrade-charm
+
     - name: Get the primary address of client relation
       tags:
         - client-relation-joined
       command: network-get client --primary-address
       register: client_primary_address
-
-    - name: Get the ElasticSearch version
-      tags:
-        - client-relation-joined
-      shell: apt-cache policy elasticsearch | grep -oe 'Installed:.*' | cut -d' ' -f2
-      register: es_version
 
     - name: Relate the cluster name and host.
       tags:
