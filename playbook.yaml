@@ -62,6 +62,20 @@
       tags:
         - stop
 
+    - name: Get the ElasticSearch version
+      tags:
+        - install
+        - upgrade-charm
+        - client-relation-joined
+      shell: apt-cache policy elasticsearch | grep -oe 'Installed:.*' | cut -d' ' -f2
+      register: es_version
+
+    - name: Set ElasticSearch version
+      command: application-version-set {{ es_version.stdout }}
+      tags:
+        - install
+        - upgrade-charm
+
     - name: Get the primary address of client relation
       tags:
         - client-relation-joined
@@ -76,6 +90,7 @@
         cluster-name={{ cluster_name }}
         host={{ client_primary_address.stdout }}
         port=9200
+        version={{ es_version.stdout }}
 
     - name: Relate logs
       tags:
