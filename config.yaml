@@ -39,3 +39,21 @@ options:
       By default, the admin and peer ports (9200 and 9300) are only accessible
       to clients and peers respectively. Switch this to false to enable access
       from any machine.
+  nagios_context:
+    type: string
+    default: "juju"
+    description: |
+      Used by the nrpe-external-master subordinate charm.
+      A string that will be prepended to instance name to set the host name
+      in nagios. So for instance the hostname would be something like:
+      .
+          juju-myservice-0
+      .
+      If you're running multiple environments with the same services in them
+      this allows you to differentiate between them.
+  nagios_servicegroups:
+    type: string
+    default: ""
+    description: |
+      A comma-separated list of nagios servicegroups.
+      If left empty, the nagios_context will be used as the servicegroup.
