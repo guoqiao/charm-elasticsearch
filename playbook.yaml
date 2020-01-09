@@ -1,9 +1,4 @@
 - hosts: localhost
-  roles:
-    - role: nrpe
-      check_name: check_http
-      check_params: -H localhost -u /_cluster/health -p 9200 -w 2 -c 3 -s green
-      service_description: "Verify the cluster health is green."
 
   handlers:
 
