@@ -13,6 +13,7 @@ import charmhelpers.payload.execd
 import charmhelpers.core.host
 from charmhelpers.core import hookenv
 from charmhelpers.fetch import add_source, apt_update
+from charmhelpers.contrib.charmsupport import nrpe
 
 mountpoint = '/srv/elasticsearch'
 
@@ -29,7 +30,7 @@ hooks = charmhelpers.contrib.ansible.AnsibleHooks(
         'peer-relation-joined',
         'peer-relation-changed',
         'peer-relation-departed',
-        'nrpe-external-master-relation-changed',
+        # 'nrpe-external-master-relation-changed',
         'rest-relation-joined',
         'start',
         'stop',
@@ -147,6 +148,29 @@ def migrate_to_mount(new_path):
     os.symlink(new_path, old_path)
     charmhelpers.core.host.service_start('elasticsearch')
 
+
+@hooks.hook('nrpe-external-master-relation-changed', 'upgrade-charm', 'config-changed')
+def update_nrpe_checks():
+    nrpe_client = nrpe.NRPE()
+
+    nrpe_client.add_check(
+        shortname='cluster_health',
+        description='Verify the cluster health is green.',
+        # class nrpe.Check will convert cmd to full path.
+        check_cmd='check_http -H localhost -u /_cluster/health -p 9200 -w 2 -c 3 -s green',
+    )
+    hookenv.log('check_cluser_health added')
+
+    nrpe_client.add_check(
+        shortname='systemd_service',
+        description='Check elasticsearch systemd service is running',
+        check_cmd='check_systemd.py elasticsearch',
+    )
+    hookenv.log('check_systemd_service added')
+
+    nrpe_client.write()
+    # ansible tasks in playbook.yaml tagged with these hooks
+    # will still be triggered after this line.
 
 if __name__ == "__main__":
     hooks.execute(sys.argv)
