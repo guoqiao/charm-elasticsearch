@@ -3,3 +3,4 @@ files/*
 revision
 exec.d
 local.yaml
+__pycache__/
